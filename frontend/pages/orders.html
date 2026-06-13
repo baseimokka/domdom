@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>My Orders — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<style>
+.orders-page{padding:7rem 0 5rem;min-height:80vh}
+.orders-empty{text-align:center;padding:5rem 2rem;color:var(--muted)}
+.orders-empty .empty-icon{font-size:4rem;margin-bottom:1rem}
+.order-card{background:white;border-radius:var(--r-lg);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;overflow:hidden;animation:fadeIn .35s ease}
+.order-card-header{display:flex;align-items:center;justify-content:space-between;padding:1.3rem 1.8rem;border-bottom:1px solid var(--nude);flex-wrap:wrap;gap:.75rem}
+.order-number{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.order-date{font-size:.78rem;color:var(--muted);margin-top:.15rem}
+.order-status-badge{padding:.35rem 1rem;border-radius:var(--r-full);font-size:.72rem;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.s-Pending{background:var(--gold-light);color:#8B6020}
+.s-Processing{background:#D4E0F4;color:#2E4E8B}
+.s-Shipped{background:#E0D4F4;color:#4E2E8B}
+.s-Delivered{background:#D4E8D4;color:#2E6B3A}
+.s-Cancelled{background:var(--rose-light);color:var(--rose-dark)}
+.order-card-body{padding:1.3rem 1.8rem}
+.order-items-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.order-item-chip{display:flex;align-items:center;gap:.6rem;background:var(--cream);border-radius:var(--r-md);padding:.5rem .9rem;font-size:.82rem}
+.order-item-thumb{width:38px;height:38px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--cream),var(--nude));display:flex;align-items:center;justify-content:center;font-size:1.2rem;overflow:hidden;flex-shrink:0}
+.order-item-thumb img{width:100%;height:100%;object-fit:cover}
+.order-card-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+.order-info-row{display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.82rem;color:var(--muted)}
+.status-tracker{display:flex;align-items:center;padding:1.2rem 1.8rem;border-top:1px solid var(--nude);background:var(--cream)}
+.tracker-step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
+.tracker-step::before{content:'';position:absolute;top:14px;right:50%;left:-50%;height:2px;background:var(--nude);z-index:0}
+.tracker-step:first-child::before{display:none}
+.tracker-dot{width:28px;height:28px;border-radius:50%;background:var(--nude);display:flex;align-items:center;justify-content:center;font-size:.7rem;position:relative;z-index:1;color:var(--muted);font-weight:600;border:2px solid var(--nude)}
+.tracker-step.done .tracker-dot{background:var(--success);border-color:var(--success);color:white}
+.tracker-step.current .tracker-dot{background:var(--rose);border-color:var(--rose);color:white}
+.tracker-step.done::before,.tracker-step.current::before{background:var(--success)}
+.tracker-label{font-size:.68rem;color:var(--muted);margin-top:.4rem;text-align:center;line-height:1.3}
+.tracker-step.done .tracker-label,.tracker-step.current .tracker-label{color:var(--charcoal);font-weight:500}
+.cancel-btn{padding:.4rem 1rem;background:transparent;color:var(--rose);border:1.5px solid var(--rose);
+  border-radius:var(--r-full);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;
+  cursor:pointer;transition:all .2s;white-space:nowrap}
+.cancel-btn:hover{background:var(--rose);color:#fff}
+
+/* Order card responsive */
+@media(max-width:600px){
+  .order-card-header{padding:1rem 1.2rem}
+  .order-card-body{padding:1rem 1.2rem}
+  .status-tracker{padding:1rem 1.2rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .status-tracker>div{min-width:260px} /* force tracker to be scrollable on very small screens */
+  .order-info-row{gap:.75rem}
+  .order-items-row{gap:.5rem}
+  .order-item-chip{font-size:.78rem;padding:.4rem .7rem}
+}
+@media(max-width:420px){
+  .tracker-dot{width:24px;height:24px;font-size:.62rem}
+  .tracker-label{font-size:.62rem}
+  .order-number{font-size:1rem}
+}
+</style>
+</head>
+<body>
+<nav id="main-nav"></nav>
+<div class="orders-page">
+  <div class="container">
+    <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span>My Orders</span></div>
+    <div class="section-header reveal" style="margin-bottom:2rem">
+      <p class="section-label">Account</p>
+      <h1 class="section-title">My Orders</h1>
+    </div>
+    <div id="orders-container"><div class="spinner"></div></div>
+  </div>
+</div>
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+const STATUS_STEPS = ['Pending','Processing','Shipped','Delivered'];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  if (!Auth.isLoggedIn()) {
+    document.getElementById('orders-container').innerHTML = `
+      <div class="orders-empty">
+        <div class="empty-icon">🔒</div>
+        <h3>Please sign in to view your orders</h3>
+        <button class="btn btn-primary" style="margin-top:1.5rem"
+          onclick="Auth.openModal('login')">Sign In</button>
+      </div>`;
+    return;
+  }
+  await loadOrders();
+});
+
+async function cancelOrder(id, orderNumber) {
+  if (!confirm(`Cancel order ${orderNumber}?\n\nThis cannot be undone.`)) return;
+  try {
+    await API.cancelOrder(id);
+    Toast.show('Order cancelled successfully', 'success');
+    await loadOrders();
+  } catch (err) {
+    Toast.show(err.message, 'error');
+  }
+}
+
+async function loadOrders() {
+  try {
+    const d = await API.myOrders();
+    if (!d.orders.length) {
+      document.getElementById('orders-container').innerHTML = `
+        <div class="orders-empty">
+          <div class="empty-icon">📦</div>
+          <h3>No orders yet</h3>
+          <p style="margin:.5rem 0 1.5rem">Start shopping to see your orders here!</p>
+          <a href="shop.html" class="btn btn-primary">Shop Now →</a>
+        </div>`;
+      return;
+    }
+    document.getElementById('orders-container').innerHTML =
+      d.orders.map(o => orderCard(o)).join('');
+  } catch {
+    document.getElementById('orders-container').innerHTML =
+      `<p style="text-align:center;color:var(--muted);padding:3rem">
+        Could not load orders. Is the server running?
+      </p>`;
+  }
+}
+
+function orderCard(o) {
+  const stepIdx   = STATUS_STEPS.indexOf(o.orderStatus);
+  const cancelled = o.orderStatus === 'Cancelled';
+
+  const tracker = cancelled
+    ? `<div class="status-tracker" style="justify-content:center">
+        <span style="color:var(--rose);font-size:.88rem">❌ This order was cancelled</span>
+       </div>`
+    : `<div class="status-tracker">
+        ${STATUS_STEPS.map((s, i) => {
+          const cls  = i < stepIdx ? 'done' : i === stepIdx ? 'current' : '';
+          const icon = i < stepIdx ? '✓'    : i === stepIdx ? '●'       : String(i + 1);
+          return `<div class="tracker-step ${cls}">
+            <div class="tracker-dot">${icon}</div>
+            <div class="tracker-label">${s}</div>
+          </div>`;
+        }).join('')}
+       </div>`;
+
+  const items = o.items.map(item => {
+    let thumb;
+    if (item.productPhoto) {
+      thumb = `<img src="${item.productPhoto}" alt="${item.productName}">`;
+    } else if (item.colorHex) {
+      thumb = `<span style="display:block;width:100%;height:100%;background:${item.colorHex};border-radius:inherit"></span>`;
+    } else {
+      thumb = item.productEmoji || '✨';
+    }
+    return `<div class="order-item-chip">
+      <div class="order-item-thumb">${thumb}</div>
+      <span>${item.productName}
+        ${item.colorName ? `(${item.colorName})` : ''} × ${item.quantity}
+      </span>
+    </div>`;
+  }).join('');
+
+  return `<div class="order-card">
+    <div class="order-card-header">
+      <div>
+        <div class="order-number">${o.orderNumber}</div>
+        <div class="order-date">
+          ${new Date(o.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}
+        </div>
+      </div>
+      <span class="order-status-badge s-${o.orderStatus}">${o.orderStatus}</span>
+    </div>
+    <div class="order-card-body">
+      <div class="order-items-row">${items}</div>
+      <div class="order-card-footer">
+        <div class="order-info-row">
+          <span>📍 ${o.shippingAddress.city}${o.shippingAddress.area ? ', ' + o.shippingAddress.area : ''}</span>
+          <span>🚚 Shipping: ${o.shippingCost === 0 ? 'Free' : o.shippingCost + ' EGP'}</span>
+          <span>💵 Cash on Delivery</span>
+          <span style="color:${o.paymentStatus === 'Paid' ? 'var(--success)' : 'var(--gold)'}">
+            Payment: ${o.paymentStatus}
+          </span>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          ${o.discount > 0 ? `<span style="font-size:.82rem;color:#2E6B3A;font-weight:500">
+            🏷️ -${o.discount.toFixed(2)} EGP
+            ${o.discountCode ? `<span style="font-size:.72rem;opacity:.8">(${o.discountCode})</span>` : ''}
+          </span>` : ''}
+          <div style="font-size:1rem;font-weight:700">Total: ${o.total.toFixed(2)} EGP</div>
+          ${['Pending','Processing'].includes(o.orderStatus) ? `
+            <button class="cancel-btn" onclick="cancelOrder('${o._id}', '${o.orderNumber}')">
+              Cancel Order
+            </button>` : ''}
+        </div>
+      </div>
+    </div>
+    ${tracker}
+  </div>`;
+}
+</script>
+</body>
+</html>

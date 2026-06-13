@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>My Wishlist — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<link rel="stylesheet" href="../css/shop.css">
+<style>
+.wishlist-page { padding: 7rem 0 5rem; min-height: 80vh; }
+.wishlist-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+.wishlist-count { font-size: .9rem; color: var(--muted); }
+.wishlist-empty { text-align: center; padding: 5rem 2rem; color: var(--muted); }
+.wishlist-empty .empty-icon { font-size: 5rem; margin-bottom: 1rem; }
+
+/* Override product card to show remove button */
+.product-card .remove-wish-btn {
+  position: absolute; top: .9rem; right: .9rem; z-index: 2;
+  width: 32px; height: 32px; background: var(--rose);
+  color: white; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; cursor: pointer;
+  box-shadow: var(--shadow-sm); transition: transform .2s, background .2s;
+}
+.product-card .remove-wish-btn:hover { transform: scale(1.15); background: var(--rose-dark); }
+</style>
+</head>
+<body>
+<nav id="main-nav"></nav>
+
+<div class="wishlist-page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Home</a><span>/</span><span>My Wishlist</span>
+    </div>
+
+    <div class="wishlist-header">
+      <div>
+        <p class="section-label">Account</p>
+        <h1 class="section-title">My Wishlist</h1>
+      </div>
+      <span class="wishlist-count" id="wishlist-count-label"></span>
+    </div>
+
+    <div id="wishlist-content"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  if (!Auth.isLoggedIn()) {
+    document.getElementById('wishlist-content').innerHTML = `
+      <div class="wishlist-empty">
+        <div class="empty-icon">🔒</div>
+        <h3>Please sign in to view your wishlist</h3>
+        <button class="btn btn-primary" style="margin-top:1.5rem"
+          onclick="Auth.openModal('login')">Sign In</button>
+      </div>`;
+    return;
+  }
+  await loadWishlist();
+});
+
+async function loadWishlist() {
+  try {
+    const d = await API.getWishlist();
+    renderWishlist(d.wishlist);
+  } catch (e) {
+    document.getElementById('wishlist-content').innerHTML =
+      `<p style="text-align:center;color:var(--muted);padding:3rem">
+        Could not load wishlist. Is the server running?
+      </p>`;
+  }
+}
+
+function renderWishlist(products) {
+  const label = document.getElementById('wishlist-count-label');
+
+  if (!products.length) {
+    label.textContent = '0 items';
+    document.getElementById('wishlist-content').innerHTML = `
+      <div class="wishlist-empty">
+        <div class="empty-icon">🤍</div>
+        <h3>Your wishlist is empty</h3>
+        <p style="margin:.5rem 0 1.5rem">Save products you love to buy them later.</p>
+        <a href="shop.html" class="btn btn-primary">Browse Products →</a>
+      </div>`;
+    return;
+  }
+
+  label.textContent = `${products.length} item${products.length !== 1 ? 's' : ''}`;
+
+  document.getElementById('wishlist-content').innerHTML = `
+    <div class="products-grid">
+      ${products.map(p => wishlistCard(p)).join('')}
+    </div>`;
+  initReveal();
+}
+
+function wishlistCard(p) {
+  const id    = String(p._id || p.id);
+  const img   = getProductImage(p);
+  const thumb = img
+    ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">`
+    : `<span class="no-photo">${p.emoji || '✨'}</span>`;
+  const badge = p.badge
+    ? `<span class="badge ${p.badge==='sale'?'badge-gold':p.badge==='new'?'badge-green':'badge-rose'} badge-pos">${p.badge}</span>`
+    : '';
+  const price = p.oldPrice
+    ? `<span class="old-price">${Number(p.oldPrice).toFixed(2)} EGP</span>${Number(p.finalPrice).toFixed(2)} EGP`
+    : `${Number(p.finalPrice).toFixed(2)} EGP`;
+
+  return `<div class="product-card reveal" id="wish-card-${id}">
+    ${badge}
+    <button class="remove-wish-btn" onclick="removeFromWishlist('${id}')" title="Remove from wishlist">✕</button>
+    <div class="product-img" onclick="window.location='product.html?id=${id}'">${thumb}</div>
+    <div class="product-info">
+      <div class="product-brand">${p.brand || 'DomDom'}</div>
+      <div class="product-name" onclick="window.location='product.html?id=${id}'">${p.name}</div>
+      <div class="stars">
+        ${'★'.repeat(Math.round(p.rating||0))}${'☆'.repeat(5-Math.round(p.rating||0))}
+        <span>(${p.reviewCount||0})</span>
+      </div>
+      <div class="product-footer">
+        <div class="product-price">${price}</div>
+        <button class="add-cart-btn" onclick="addWishToCart('${id}', this)">🛍 Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function removeFromWishlist(productId) {
+  try {
+    await API.removeWishlist(productId);
+    // Remove card with animation
+    const card = document.getElementById(`wish-card-${productId}`);
+    if (card) {
+      card.style.transition = 'opacity .3s, transform .3s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(.95)';
+      setTimeout(() => { card.remove(); refreshCount(); }, 300);
+    }
+    Toast.show('Removed from wishlist', 'info');
+  } catch (e) {
+    Toast.show(e.message, 'error');
+  }
+}
+
+function refreshCount() {
+  const remaining = document.querySelectorAll('.products-grid .product-card').length;
+  const label = document.getElementById('wishlist-count-label');
+  if (!remaining) {
+    label.textContent = '0 items';
+    document.getElementById('wishlist-content').innerHTML = `
+      <div class="wishlist-empty">
+        <div class="empty-icon">🤍</div>
+        <h3>Your wishlist is empty</h3>
+        <p style="margin:.5rem 0 1.5rem">Save products you love to buy them later.</p>
+        <a href="shop.html" class="btn btn-primary">Browse Products →</a>
+      </div>`;
+  } else {
+    label.textContent = `${remaining} item${remaining !== 1 ? 's' : ''}`;
+  }
+  // Update badge in navbar
+  const badge = document.getElementById('wishlist-count');
+  if (badge) {
+    badge.textContent = remaining;
+    badge.style.display = remaining > 0 ? 'flex' : 'none';
+  }
+}
+
+async function addWishToCart(productId, btn) {
+  try {
+    const d = await API.getProduct(productId);
+    Cart.add(d.product);
+    btn.textContent = '✓ Added';
+    btn.classList.add('added');
+    setTimeout(() => { btn.textContent = '🛍 Add'; btn.classList.remove('added'); }, 1800);
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+**/.env
+
+# Uploaded user content (do not commit)
+backend/uploads/
+
+# Logs
+*.log
+backend/_run.log
+backend/_run.err.log
+logs/
+
+# Test artifacts
+test_screenshots/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.vs/
+
+# Claude Code machine-local settings
+.claude/settings.local.json
+
+# Prisma local
+backend/prisma/*.db

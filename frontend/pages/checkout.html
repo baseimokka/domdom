@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>Checkout — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<style>
+.checkout-page{padding:7rem 0 5rem;min-height:80vh}
+.checkout-grid{display:grid;grid-template-columns:1fr 400px;gap:2.5rem;align-items:start;margin-top:2rem}
+.checkout-form-box{background:white;border-radius:var(--r-lg);padding:2rem;box-shadow:var(--shadow-sm);margin-bottom:1.5rem}
+.checkout-form-box h3{font-size:1.2rem;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--nude);display:flex;align-items:center;gap:.5rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* Payment option cards */
+.payment-options{display:flex;flex-direction:column;gap:.75rem}
+.payment-option-card{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.2rem;border:2px solid var(--nude);border-radius:var(--r-md);background:#fff;cursor:pointer;transition:all .2s;user-select:none}
+.payment-option-card:hover{border-color:var(--rose)}
+.payment-option-card.selected{border-color:var(--rose);background:var(--cream)}
+.payment-icon{font-size:2rem;flex-shrink:0}
+.instapay-logo-wrap{flex-shrink:0;border-radius:8px;overflow:hidden;width:56px;height:56px;border:1px solid var(--nude)}
+.instapay-logo-wrap img{width:100%;height:100%;object-fit:cover}
+.vodafone-logo-wrap{flex-shrink:0;border-radius:8px;overflow:hidden;width:56px;height:56px;border:1px solid var(--nude)}
+.vodafone-logo-wrap img{width:100%;height:100%;object-fit:cover}
+.payment-label strong{display:block;font-size:.95rem}
+.payment-label span{font-size:.8rem;color:var(--muted)}
+.payment-check{margin-left:auto;color:var(--success);font-size:1.3rem;font-weight:700;transition:opacity .15s}
+
+/* Payment details info box */
+.payment-details-box{margin-top:1rem;background:var(--cream);border:1.5px solid var(--nude);border-radius:var(--r-md);padding:1.2rem}
+.payment-details-box .detail-row{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;margin-bottom:.4rem}
+.payment-details-box .detail-label{color:var(--muted)}
+.payment-details-box .detail-value{font-weight:600;font-family:monospace;font-size:.92rem}
+.payment-instruction{margin-top:.65rem;padding:.6rem .8rem;background:var(--gold-light);border-radius:8px;font-size:.78rem;color:#5E4A0A;line-height:1.5}
+
+/* Proof upload */
+.proof-upload-wrap{margin-top:1rem}
+.proof-upload-label{font-size:.85rem;font-weight:500;display:block;margin-bottom:.5rem}
+.proof-upload-area{border:2px dashed var(--nude);border-radius:var(--r-md);padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--cream);position:relative;min-height:130px;display:flex;align-items:center;justify-content:center}
+.proof-upload-area:hover,.proof-upload-area.drag-over{border-color:var(--rose)}
+.proof-placeholder p{font-size:.85rem;color:var(--muted);margin:.2rem 0 0}
+.proof-placeholder small{font-size:.73rem;color:var(--nude-dark)}
+.proof-preview-inner{position:relative;width:100%}
+.proof-preview-inner img{width:100%;max-height:220px;object-fit:contain;border-radius:8px;display:block}
+.proof-remove-btn{position:absolute;top:6px;right:6px;background:#C8506E;color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.proof-hint{font-size:.75rem;color:var(--muted);margin-top:.35rem}
+
+/* ORDER SUMMARY */
+.order-summary{background:white;border-radius:var(--r-lg);padding:2rem;box-shadow:var(--shadow-sm);position:sticky;top:90px}
+.order-summary h3{font-size:1.2rem;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--nude)}
+.summary-items{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.5rem;max-height:300px;overflow-y:auto}
+.summary-item{display:flex;align-items:center;gap:.8rem}
+.summary-thumb{width:52px;height:52px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--cream),var(--nude));display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;flex-shrink:0}
+.summary-thumb img{width:100%;height:100%;object-fit:cover}
+.summary-item-name{font-size:.88rem;font-weight:500;flex:1}
+.summary-item-qty{font-size:.78rem;color:var(--muted)}
+.summary-item-price{font-size:.9rem;font-weight:600}
+.summary-divider{height:1px;background:var(--nude);margin:.75rem 0}
+.summary-row{display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:.4rem}
+.summary-row.total{font-size:1.1rem;font-weight:700;margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--nude)}
+.shipping-info-box{background:var(--cream);border-radius:var(--r-sm);padding:.6rem .9rem;font-size:.8rem;color:var(--muted);margin-top:.4rem}
+
+/* SELECT CITY STYLE */
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A6B6B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem}
+
+/* SUCCESS */
+.order-success{text-align:center;padding:3rem 2rem;display:none}
+.order-success .success-icon{font-size:5rem;margin-bottom:1rem}
+.order-number-box{background:var(--cream);border-radius:var(--r-md);padding:1rem 1.5rem;display:inline-block;margin:1rem 0}
+.order-number-box strong{font-size:1.4rem;color:var(--rose);font-family:'Playfair Display',serif}
+
+@media(max-width:1024px){.checkout-grid{grid-template-columns:1fr}.order-summary{position:static}}
+@media(max-width:600px){
+  .form-row{grid-template-columns:1fr}
+  .checkout-form-box{padding:1.25rem}
+  .order-summary{padding:1.25rem}
+}
+@media(max-width:420px){
+  /* Compact payment cards for small phones */
+  .payment-option-card{padding:.85rem .9rem;gap:.7rem}
+  .instapay-logo-wrap,.vodafone-logo-wrap{width:44px;height:44px}
+  .payment-label strong{font-size:.88rem}
+  .payment-label span{font-size:.75rem}
+  /* Compact detail rows */
+  .payment-details-box .detail-row{flex-direction:column;align-items:flex-start;gap:.15rem}
+}
+</style>
+</head>
+<body>
+<nav id="main-nav"></nav>
+
+<div class="checkout-page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Home</a><span>/</span>
+      <a href="shop.html">Shop</a><span>/</span>
+      <span>Checkout</span>
+    </div>
+
+    <!-- CHECKOUT FORM -->
+    <div id="checkout-main">
+      <div class="section-header reveal">
+        <p class="section-label">Almost there</p>
+        <h1 class="section-title">Checkout</h1>
+      </div>
+
+      <div class="checkout-grid">
+        <!-- LEFT — SHIPPING + PAYMENT -->
+        <div>
+          <!-- SHIPPING -->
+          <div class="checkout-form-box">
+            <h3>📍 Shipping Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Name <span style="color:var(--rose)">*</span></label>
+                <input class="form-control" type="text" id="ship-name" placeholder="Your full name" required>
+              </div>
+              <div class="form-group">
+                <label>Phone Number <span style="color:var(--rose)">*</span></label>
+                <input class="form-control" type="tel" id="ship-phone" placeholder="01xxxxxxxxx" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email Address <span style="color:var(--rose)">*</span></label>
+                <input class="form-control" type="email" id="ship-email" placeholder="you@example.com" required>
+              </div>
+              <div class="form-group">
+                <label>City <span style="color:var(--rose)">*</span></label>
+                <select class="form-control" id="ship-city" onchange="updateShipping()" required>
+                  <option value="">Select your city…</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Area / District</label>
+                <input class="form-control" type="text" id="ship-area" placeholder="e.g. Maadi, Heliopolis">
+              </div>
+              <div class="form-group">
+                <label>Postal Code<span style="font-size:.75rem;color:var(--muted)">(optional)</span></label>
+                <input class="form-control" type="text" id="ship-postal" placeholder="11511">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Full Address <span style="color:var(--rose)">*</span></label>
+              <input class="form-control" type="text" id="ship-address"
+                placeholder="Street, Building No., Floor, Apartment" required>
+            </div>
+            <div class="form-group">
+              <label>Order Notes <span style="font-size:.75rem;color:var(--muted)">(optional)</span></label>
+              <textarea class="form-control" id="ship-notes" rows="2"
+                placeholder="Special delivery instructions…" style="resize:vertical"></textarea>
+            </div>
+          </div>
+
+          <!-- PAYMENT -->
+          <div class="checkout-form-box">
+            <h3>💳 Payment Method</h3>
+
+            <div class="payment-options">
+              <!-- Cash on Delivery -->
+              <div class="payment-option-card selected" data-method="COD" onclick="selectPayment('COD')">
+                <span class="payment-icon">💵</span>
+                <div class="payment-label">
+                  <strong>Cash on Delivery</strong>
+                  <span>Pay in cash when your order arrives</span>
+                </div>
+                <span class="payment-check" id="check-COD">✓</span>
+              </div>
+
+              <!-- InstaPay -->
+              <div class="payment-option-card" data-method="InstaPay" onclick="selectPayment('InstaPay')">
+                <div class="instapay-logo-wrap">
+                  <img src="/images/instapay-logo.png" alt="InstaPay">
+                </div>
+                <div class="payment-label">
+                  <strong>InstaPay</strong>
+                  <span>Bank transfer via InstaPay app</span>
+                </div>
+                <span class="payment-check" id="check-InstaPay" style="opacity:0">✓</span>
+              </div>
+
+              <!-- Vodafone Cash -->
+              <div class="payment-option-card" data-method="VodafoneCash" onclick="selectPayment('VodafoneCash')">
+                <div class="vodafone-logo-wrap">
+                  <img src="/images/vodafone-cash-logo.jpg" alt="Vodafone Cash">
+                </div>
+                <div class="payment-label">
+                  <strong>Vodafone Cash</strong>
+                  <span>Transfer via Vodafone Cash wallet</span>
+                </div>
+                <span class="payment-check" id="check-VodafoneCash" style="opacity:0">✓</span>
+              </div>
+            </div>
+
+            <!-- Payment account details (shown for InstaPay / Vodafone Cash) -->
+            <div class="payment-details-box" id="payment-details-box" style="display:none">
+              <p id="pay-details-title" style="font-size:.82rem;font-weight:600;margin-bottom:.65rem"></p>
+              <div id="pay-details-content"></div>
+            </div>
+
+            <!-- Proof upload (shown for InstaPay / Vodafone Cash) -->
+            <div class="proof-upload-wrap" id="proof-upload-box" style="display:none">
+              <label class="proof-upload-label">
+                Upload Payment Screenshot <span style="color:var(--rose)">*</span>
+              </label>
+              <div class="proof-upload-area" id="proof-upload-area"
+                ondragover="event.preventDefault();this.classList.add('drag-over')"
+                ondragleave="this.classList.remove('drag-over')"
+                ondrop="handleProofDrop(event)"
+                onclick="document.getElementById('proof-file-input').click()">
+                <input type="file" id="proof-file-input" accept=".jpg,.jpeg,.png,.webp"
+                  onchange="handleProofSelect(this)" style="display:none">
+                <div id="proof-placeholder">
+                  <div style="font-size:2.5rem;margin-bottom:.4rem">📷</div>
+                  <p>Click or drag to upload screenshot</p>
+                  <small>JPG, PNG, WEBP · Max 5MB</small>
+                </div>
+                <div id="proof-preview" style="display:none" onclick="event.stopPropagation()">
+                  <div class="proof-preview-inner">
+                    <img id="proof-preview-img" alt="Payment proof preview">
+                    <button type="button" class="proof-remove-btn" onclick="removeProof()">✕</button>
+                  </div>
+                </div>
+              </div>
+              <p class="proof-hint">Please upload a clear screenshot of your transfer confirmation.</p>
+            </div>
+
+            <p style="font-size:.8rem;color:var(--muted);margin-top:.75rem" id="pay-tip">
+              💡 Our delivery team will call you to confirm before shipping.
+            </p>
+          </div>
+        </div>
+
+        <!-- RIGHT — ORDER SUMMARY -->
+        <div class="order-summary reveal">
+          <h3>Order Summary</h3>
+          <div class="summary-items" id="summary-items">
+            <p style="color:var(--muted);font-size:.88rem">Loading cart…</p>
+          </div>
+          <div class="summary-divider"></div>
+
+          <!-- COUPON CODE -->
+          <div style="margin-bottom:.75rem">
+            <div style="display:flex;gap:.5rem">
+              <input type="text" id="coupon-input" placeholder="Coupon code"
+                style="flex:1;padding:.55rem .8rem;border:1.5px solid var(--nude);border-radius:8px;
+                  font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;text-transform:uppercase;
+                  transition:border-color .2s"
+                onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='var(--nude)'"
+                onkeydown="if(event.key==='Enter')applyCoupon()">
+              <button id="coupon-btn"
+                style="padding:.55rem 1rem;background:var(--rose);color:#fff;border:none;border-radius:8px;
+                  font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;
+                  white-space:nowrap;transition:background .2s"
+                onclick="applyCoupon()">Apply</button>
+            </div>
+            <div id="coupon-msg" style="display:none;font-size:.78rem;margin-top:.4rem;
+              padding:.35rem .65rem;border-radius:6px"></div>
+          </div>
+
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span id="sum-subtotal">0 EGP</span>
+          </div>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span id="sum-shipping">— Select city</span>
+          </div>
+          <div id="shipping-info-text" class="shipping-info-box" style="display:none"></div>
+          <div class="summary-row" id="discount-row" style="display:none;color:#2E6B3A;font-weight:500">
+            <span>Discount (<span id="coupon-code-label"></span>)</span>
+            <span id="sum-discount">-0 EGP</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total</span>
+            <span id="sum-total">0 EGP</span>
+          </div>
+
+          <button class="btn btn-primary" id="place-order-btn"
+            style="width:100%;justify-content:center;margin-top:1.5rem;font-size:1rem;padding:1rem">
+            Place Order — Cash on Delivery 💵
+          </button>
+          <p style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.6rem">
+            By placing your order you agree to our Terms of Service
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div class="order-success" id="order-success">
+      <div class="success-icon">🎉</div>
+      <h2>Order Placed Successfully!</h2>
+      <p id="success-subtitle">Thank you! Our team will call you to confirm delivery.</p>
+      <div class="order-number-box">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:.2rem">Your Order Number</div>
+        <strong id="success-order-number">ORD-XXXXX</strong>
+      </div>
+      <p style="margin-top:1rem;font-size:.9rem;color:var(--muted)" id="success-payment-info"></p>
+      <div style="display:flex;gap:1rem;justify-content:center;margin-top:2rem;flex-wrap:wrap">
+        <a href="orders.html" class="btn btn-primary">View My Orders</a>
+        <a href="shop.html"   class="btn btn-outline">Continue Shopping</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+// ── STATE
+let citiesData          = [];
+let currentShippingFee  = 0;
+const FREE_SHIPPING_THRESHOLD = 3000;
+let appliedCoupon       = null; // { code, discountAmount, discountType, discountValue }
+let selectedPaymentMethod = 'COD';
+let proofFile           = null;
+let paymentSettings     = {};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  await loadCities();
+  await loadPaymentSettings();
+  loadSummary();
+
+  // Pre-fill if logged in
+  const user = Auth.getUser();
+  if (user) {
+    document.getElementById('ship-email').value = user.email || '';
+    document.getElementById('ship-name').value  = user.name  || '';
+  }
+
+  document.getElementById('place-order-btn').addEventListener('click', placeOrder);
+});
+
+// ── Load Egypt cities from API
+async function loadCities() {
+  try {
+    const d = await fetch('http://localhost:3000/api/shipping/cities').then(r => r.json());
+    citiesData = d.cities || [];
+    const select = document.getElementById('ship-city');
+    select.innerHTML = `<option value="">Select your city…</option>` +
+      citiesData.map(c =>
+        `<option value="${c.name}" data-fee="${c.fee}">${c.name} — ${c.fee} EGP</option>`
+      ).join('');
+  } catch {
+    document.getElementById('ship-city').innerHTML = `
+      <option value="">Select your city…</option>
+      <option value="Cairo"      data-fee="50">Cairo — 50 EGP</option>
+      <option value="Giza"       data-fee="50">Giza — 50 EGP</option>
+      <option value="Alexandria" data-fee="65">Alexandria — 65 EGP</option>
+      <option value="Other"      data-fee="95">Other — 95 EGP</option>`;
+  }
+}
+
+// ── Load payment settings (InstaPay / Vodafone Cash account details)
+async function loadPaymentSettings() {
+  try {
+    const d = await API.getSettings();
+    paymentSettings = d.settings || {};
+  } catch {
+    paymentSettings = {};
+  }
+}
+
+// ── Payment method selection
+function selectPayment(method) {
+  selectedPaymentMethod = method;
+
+  document.querySelectorAll('.payment-option-card').forEach(card => {
+    card.classList.toggle('selected', card.dataset.method === method);
+  });
+  ['COD', 'InstaPay', 'VodafoneCash'].forEach(m => {
+    const el = document.getElementById(`check-${m}`);
+    if (el) el.style.opacity = m === method ? '1' : '0';
+  });
+
+  const detailsBox = document.getElementById('payment-details-box');
+  const proofBox   = document.getElementById('proof-upload-box');
+  const payTip     = document.getElementById('pay-tip');
+
+  if (method === 'COD') {
+    detailsBox.style.display = 'none';
+    proofBox.style.display   = 'none';
+    payTip.textContent       = '💡 Our delivery team will call you to confirm before shipping.';
+  } else {
+    detailsBox.style.display = 'block';
+    proofBox.style.display   = 'block';
+    payTip.textContent       = '⚠️ Transfer the exact total amount shown above, then upload your payment screenshot.';
+
+    if (method === 'InstaPay') {
+      document.getElementById('pay-details-title').textContent = '📱 InstaPay Transfer Details';
+      document.getElementById('pay-details-content').innerHTML =
+        detailRow('Account Name', paymentSettings.instapay_account_name || '—') +
+        detailRow('InstaPay ID',  paymentSettings.instapay_identifier   || '—') +
+        instructionNote(paymentSettings.payment_instructions);
+    } else {
+      document.getElementById('pay-details-title').textContent = '📲 Vodafone Cash Transfer Details';
+      document.getElementById('pay-details-content').innerHTML =
+        detailRow('Vodafone Cash Number', paymentSettings.vodafone_cash_number || '—') +
+        instructionNote(paymentSettings.payment_instructions);
+    }
+  }
+
+  updatePlaceOrderBtn();
+}
+
+function detailRow(label, value) {
+  return `<div class="detail-row">
+    <span class="detail-label">${label}</span>
+    <span class="detail-value">${value}</span>
+  </div>`;
+}
+
+function instructionNote(text) {
+  if (!text) return '';
+  return `<div class="payment-instruction">ℹ️ ${text}</div>`;
+}
+
+function updatePlaceOrderBtn() {
+  const btn = document.getElementById('place-order-btn');
+  const labels = { COD: 'Cash on Delivery 💵', InstaPay: 'InstaPay 📱', VodafoneCash: 'Vodafone Cash 📲' };
+  btn.textContent = `Place Order — ${labels[selectedPaymentMethod] || selectedPaymentMethod}`;
+}
+
+// ── Proof upload handlers
+function handleProofSelect(input) {
+  if (input.files && input.files[0]) setProofFile(input.files[0]);
+}
+
+function handleProofDrop(event) {
+  event.preventDefault();
+  document.getElementById('proof-upload-area').classList.remove('drag-over');
+  if (event.dataTransfer.files[0]) setProofFile(event.dataTransfer.files[0]);
+}
+
+function setProofFile(file) {
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    Toast.show('Only JPG, PNG, and WEBP images allowed', 'error');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    Toast.show('File must be under 5MB', 'error');
+    return;
+  }
+  proofFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('proof-preview-img').src = e.target.result;
+    document.getElementById('proof-placeholder').style.display = 'none';
+    document.getElementById('proof-preview').style.display     = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeProof() {
+  proofFile = null;
+  document.getElementById('proof-file-input').value  = '';
+  document.getElementById('proof-preview-img').src   = '';
+  document.getElementById('proof-placeholder').style.display = 'block';
+  document.getElementById('proof-preview').style.display     = 'none';
+}
+
+// ── Shipping fee update
+function updateShipping() {
+  const select = document.getElementById('ship-city');
+  const option = select.options[select.selectedIndex];
+  const fee    = parseInt(option?.dataset?.fee || 0);
+  currentShippingFee = fee;
+
+  const sub    = Cart.getSubtotal();
+  const isFree = sub >= FREE_SHIPPING_THRESHOLD;
+  const infoBox= document.getElementById('shipping-info-text');
+
+  if (isFree) {
+    infoBox.style.display = 'block';
+    infoBox.textContent   = `🎉 Free shipping on orders over ${FREE_SHIPPING_THRESHOLD} EGP!`;
+  } else if (fee > 0) {
+    infoBox.style.display = 'block';
+    infoBox.textContent   = `🚚 Delivery to ${option.value}: ${fee} EGP`;
+  } else {
+    infoBox.style.display = 'none';
+  }
+
+  updateSummaryTotals();
+}
+
+function loadSummary() {
+  const items = Cart.getItems();
+  const el    = document.getElementById('summary-items');
+
+  if (!items.length) {
+    el.innerHTML = '<p style="color:var(--muted);text-align:center">Your cart is empty</p>';
+    document.getElementById('place-order-btn').disabled = true;
+    updateSummaryTotals();
+    return;
+  }
+
+  el.innerHTML = items.map(item => {
+    const thumb = item.photo
+      ? `<img src="${item.photo}" alt="${item.name}">`
+      : (item.emoji || '🛍');
+    return `<div class="summary-item">
+      <div class="summary-thumb">${thumb}</div>
+      <div style="flex:1">
+        <div class="summary-item-name">${item.name}</div>
+        ${item.colorName ? `<div class="summary-item-qty">${item.colorName}</div>` : ''}
+        <div class="summary-item-qty">Qty: ${item.quantity}</div>
+      </div>
+      <div class="summary-item-price">${(item.price * item.quantity).toFixed(2)} EGP</div>
+    </div>`;
+  }).join('');
+
+  updateSummaryTotals();
+}
+
+function updateSummaryTotals() {
+  const sub      = Cart.getSubtotal();
+  const isFree   = sub >= FREE_SHIPPING_THRESHOLD;
+  const ship     = isFree ? 0 : currentShippingFee;
+  const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+  const total    = Math.max(0, sub - discount + ship);
+
+  document.getElementById('sum-subtotal').textContent = `${sub.toFixed(2)} EGP`;
+  document.getElementById('sum-shipping').textContent = isFree
+    ? '🎉 Free!'
+    : ship > 0 ? `${ship} EGP` : '— Select city';
+
+  const discountRow = document.getElementById('discount-row');
+  if (appliedCoupon && discount > 0) {
+    discountRow.style.display = 'flex';
+    document.getElementById('coupon-code-label').textContent = appliedCoupon.code;
+    document.getElementById('sum-discount').textContent = `-${discount.toFixed(2)} EGP`;
+  } else {
+    discountRow.style.display = 'none';
+  }
+
+  document.getElementById('sum-total').textContent = `${total.toFixed(2)} EGP`;
+}
+
+async function applyCoupon() {
+  const input = document.getElementById('coupon-input');
+  const btn   = document.getElementById('coupon-btn');
+  const msgEl = document.getElementById('coupon-msg');
+  const code  = input.value.trim().toUpperCase();
+
+  if (!code) return Toast.show('Enter a coupon code', 'error');
+
+  btn.disabled    = true;
+  btn.textContent = 'Checking…';
+
+  try {
+    const sub = Cart.getSubtotal();
+    const d   = await API.validateCoupon(code, sub);
+
+    appliedCoupon = {
+      code,
+      discountAmount: d.discountAmount,
+      discountType:   d.discountType,
+      discountValue:  d.discountValue
+    };
+
+    msgEl.style.display    = 'block';
+    msgEl.style.background = '#D4E8D4';
+    msgEl.style.color      = '#2E6B3A';
+    msgEl.textContent      = `✓ ${d.message}`;
+
+    input.disabled       = true;
+    input.value          = code;
+    btn.textContent      = 'Remove';
+    btn.style.background = '#7A6B6B';
+    btn.onclick          = removeCoupon;
+
+    updateSummaryTotals();
+  } catch (err) {
+    appliedCoupon          = null;
+    msgEl.style.display    = 'block';
+    msgEl.style.background = '#F4D6DF';
+    msgEl.style.color      = '#8B2E47';
+    msgEl.textContent      = `✗ ${err.message}`;
+    updateSummaryTotals();
+  } finally {
+    btn.disabled = false;
+    if (!appliedCoupon) btn.textContent = 'Apply';
+  }
+}
+
+function removeCoupon() {
+  appliedCoupon = null;
+  const input = document.getElementById('coupon-input');
+  const btn   = document.getElementById('coupon-btn');
+  const msgEl = document.getElementById('coupon-msg');
+
+  input.value          = '';
+  input.disabled       = false;
+  msgEl.style.display  = 'none';
+  btn.textContent      = 'Apply';
+  btn.style.background = 'var(--rose)';
+  btn.onclick          = applyCoupon;
+
+  updateSummaryTotals();
+}
+
+// ── Place Order (two-step for manual payments)
+async function placeOrder() {
+  const shippingAddress = {
+    fullName:   document.getElementById('ship-name').value.trim(),
+    phone:      document.getElementById('ship-phone').value.trim(),
+    email:      document.getElementById('ship-email').value.trim(),
+    city:       document.getElementById('ship-city').value.trim(),
+    area:       document.getElementById('ship-area').value.trim(),
+    address:    document.getElementById('ship-address').value.trim(),
+    postalCode: document.getElementById('ship-postal').value.trim(),
+    notes:      document.getElementById('ship-notes').value.trim()
+  };
+
+  // Validate shipping
+  const required = [
+    { key: 'fullName', label: 'Full Name'    },
+    { key: 'phone',    label: 'Phone Number' },
+    { key: 'email',    label: 'Email'        },
+    { key: 'city',     label: 'City'         },
+    { key: 'address',  label: 'Full Address' }
+  ];
+  for (const f of required) {
+    if (!shippingAddress[f.key]) {
+      Toast.show(`Please fill in: ${f.label}`, 'error');
+      return;
+    }
+  }
+  if (!shippingAddress.email.includes('@')) {
+    Toast.show('Please enter a valid email', 'error');
+    return;
+  }
+
+  // Validate proof for manual payments
+  if (selectedPaymentMethod !== 'COD' && !proofFile) {
+    Toast.show('Please upload your payment screenshot before confirming', 'error');
+    document.getElementById('proof-upload-area').style.borderColor = 'var(--rose)';
+    return;
+  }
+
+  const cartItems = Cart.getItems();
+  if (!cartItems.length) return Toast.show('Your cart is empty', 'error');
+
+  const btn = document.getElementById('place-order-btn');
+  btn.disabled = true;
+  btn.textContent = 'Placing order…';
+
+  let createdOrder = null;
+
+  try {
+    // Step 1: Create the order
+    const d = await API.placeOrder({
+      items: cartItems.map(i => ({
+        productId: i.id,
+        quantity:  i.quantity,
+        colorId:   i.variantId || '',
+        colorName: i.colorName || ''
+      })),
+      shippingAddress,
+      couponCode:    appliedCoupon?.code || '',
+      paymentMethod: selectedPaymentMethod
+    });
+
+    createdOrder = d.order;
+
+    // Step 2: Upload payment proof for non-COD orders
+    if (selectedPaymentMethod !== 'COD' && proofFile) {
+      btn.textContent = 'Uploading proof…';
+      const fd = new FormData();
+      fd.append('proof', proofFile);
+      await API.uploadPaymentProof(createdOrder._id, fd);
+    }
+
+    // Success
+    Cart.clear();
+    document.getElementById('checkout-main').style.display = 'none';
+    const successEl = document.getElementById('order-success');
+    successEl.style.display = 'block';
+
+    document.getElementById('success-order-number').textContent = createdOrder.orderNumber;
+
+    if (selectedPaymentMethod === 'COD') {
+      document.getElementById('success-subtitle').textContent    = 'Thank you! Our team will call you to confirm delivery.';
+      document.getElementById('success-payment-info').innerHTML  =
+        `💵 Payment: <strong>Cash on Delivery</strong><br>
+         📞 We'll call <strong>${shippingAddress.phone}</strong> to confirm`;
+    } else {
+      const methodLabel = selectedPaymentMethod === 'InstaPay' ? 'InstaPay 📱' : 'Vodafone Cash 📲';
+      document.getElementById('success-subtitle').textContent    = 'Thank you! Your payment is under review.';
+      document.getElementById('success-payment-info').innerHTML  =
+        `${selectedPaymentMethod === 'InstaPay' ? '📱' : '📲'} Payment: <strong>${methodLabel}</strong><br>
+         ⏳ We'll verify your screenshot and contact you at <strong>${shippingAddress.phone}</strong>`;
+    }
+
+  } catch (err) {
+    // If order was created but proof upload failed, cancel it so stock is restored
+    if (createdOrder && selectedPaymentMethod !== 'COD') {
+      try { await API.cancelOrder(createdOrder._id); } catch {}
+    }
+    Toast.show(err.message, 'error');
+    btn.disabled = false;
+    updatePlaceOrderBtn();
+  }
+}
+</script>
+</body>
+</html>

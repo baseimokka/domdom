@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>About Us — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<style>
+.about-page{padding-top:5rem}
+.about-hero{background:linear-gradient(135deg,var(--rose-light) 0%,var(--nude) 60%,var(--gold-light) 100%);padding:8rem 0 5rem;text-align:center}
+.about-hero h1{font-size:clamp(2.8rem,5vw,4.5rem);margin-bottom:1rem}
+.about-hero p{font-size:1.1rem;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.8}
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;padding:5rem 0}
+.story-img-box{border-radius:var(--r-lg);background:linear-gradient(135deg,var(--rose-light),var(--nude));aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:8rem}
+.story-text .section-label{margin-bottom:.75rem}
+.story-text h2{font-size:clamp(1.8rem,3vw,2.5rem);margin-bottom:1.2rem}
+.story-text p{font-size:.97rem;color:var(--muted);line-height:1.85;margin-bottom:1rem}
+.values-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;padding:4rem 0}
+.value-card{background:#fff;border-radius:var(--r-lg);padding:2rem 1.5rem;text-align:center;box-shadow:var(--shadow-sm);transition:transform .3s}
+.value-card:hover{transform:translateY(-5px)}
+.value-icon{font-size:3rem;margin-bottom:1rem}
+.value-card h3{font-size:1.1rem;margin-bottom:.6rem}
+.value-card p{font-size:.85rem;color:var(--muted);line-height:1.7}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;padding:3rem 0}
+.team-card{text-align:center}
+.team-avatar{width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,var(--rose-light),var(--nude));display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin:0 auto 1rem}
+.team-name{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:.3rem}
+.team-role{font-size:.82rem;color:var(--rose);font-weight:500;margin-bottom:.5rem}
+.team-bio{font-size:.83rem;color:var(--muted);line-height:1.7}
+.stats-banner{background:var(--charcoal);padding:4rem 0}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center}
+.stat-num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:700;color:var(--rose);margin-bottom:.4rem}
+.stat-label{font-size:.85rem;color:rgba(255,255,255,.65)}
+@media(max-width:1024px){.story-grid{grid-template-columns:1fr;gap:2.5rem}.values-grid{grid-template-columns:repeat(2,1fr)}.team-grid{grid-template-columns:repeat(2,1fr)}.stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.values-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.team-grid{grid-template-columns:1fr}.stats-row{grid-template-columns:1fr 1fr}.about-hero{padding:6rem 0 3rem}}
+</style>
+</head>
+<body>
+<nav id="main-nav"></nav>
+
+<div class="about-page">
+
+  <!-- HERO -->
+  <div class="about-hero">
+    <div class="container">
+      <p class="section-label">Our Story</p>
+      <h1>Beauty With a <em style="font-style:italic;color:var(--rose)">Purpose</em></h1>
+      <p>We believe that beauty should empower, not harm. Every product we create is a promise — to you, and to our planet.</p>
+    </div>
+  </div>
+
+  <!-- STORY -->
+  <section class="section section-white">
+    <div class="container">
+      <div class="story-grid">
+        <div class="story-img-box reveal">💄</div>
+        <div class="story-text reveal">
+          <p class="section-label">How It Started</p>
+          <h2>Born from a Love of Beauty & Ethics</h2>
+          <p>DomDom Store was founded in 2020 with one simple mission: make premium beauty products that never compromise on ethics. Our founder, passionate about makeup since childhood, was frustrated by the lack of truly cruelty-free, high-performance options on the market.</p>
+          <p>She spent two years working with leading cosmetic chemists and ethical sourcing experts to create a brand that delivers on both performance and principles. Every formula is tested on willing human volunteers — never animals.</p>
+          <p>Today, DomDom serves over 50,000 customers worldwide, and we're just getting started.</p>
+          <a href="shop.html" class="btn btn-primary" style="margin-top:.5rem">Shop Our Products →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats-banner">
+    <div class="container">
+      <div class="stats-row">
+        <div class="reveal"><div class="stat-num">50K+</div><div class="stat-label">Happy Customers</div></div>
+        <div class="reveal"><div class="stat-num">641</div><div class="stat-label">Products</div></div>
+        <div class="reveal"><div class="stat-num">100%</div><div class="stat-label">Cruelty-Free</div></div>
+        <div class="reveal"><div class="stat-num">4.9★</div><div class="stat-label">Average Rating</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VALUES -->
+  <section class="section section-cream">
+    <div class="container">
+      <div class="section-header text-center reveal">
+        <p class="section-label">What We Stand For</p>
+        <h2 class="section-title">Our Core Values</h2>
+      </div>
+      <div class="values-grid">
+        <div class="value-card reveal"><div class="value-icon">🌿</div><h3>Cruelty-Free</h3><p>Never tested on animals. Our products are certified by Leaping Bunny and PETA's Beauty Without Bunnies program.</p></div>
+        <div class="value-card reveal"><div class="value-icon">💚</div><h3>Vegan Formula</h3><p>Zero animal-derived ingredients in any of our products. Pure, plant-based formulas that perform beautifully.</p></div>
+        <div class="value-card reveal"><div class="value-icon">♻️</div><h3>Sustainable Packaging</h3><p>All our packaging is made from recycled or recyclable materials. We're working toward 100% plastic-free by 2026.</p></div>
+        <div class="value-card reveal"><div class="value-icon">🔬</div><h3>Science-Backed</h3><p>Every formula is developed with leading cosmetic chemists and tested by dermatologists for safety and efficacy.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section class="section section-white">
+    <div class="container">
+      <div class="section-header text-center reveal">
+        <p class="section-label">The People Behind DomDom</p>
+        <h2 class="section-title">Meet Our Team</h2>
+      </div>
+      <div class="team-grid">
+        <div class="team-card reveal"><div class="team-avatar"><img src="image2.jpg"></div><div class="team-name">Menna Faris</div><div class="team-role">Founder & CEO</div><p class="team-bio">Makeup artist turned entrepreneur. Passionate about clean beauty and ethical sourcing.</p></div>
+        <div class="team-card reveal"><div class="team-avatar"><img src="" alt="Mostafa Faris"></div><div class="team-name">Mostafa Faris</div><div class="team-role">Head of administration</div><p class="team-bio">Extensive exprience in administrative leadership and stratgeic organization ensure efficient business growth</p></div>
+        <div class="team-card reveal"><div class="team-avatar"><img src="image.jpg"></div><div class="team-name">Bassem Okka</div><div class="team-role">Software developer </div><p class="team-bio">DomDom website developer</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWSLETTER -->
+<!--
+  <section class="section section-rose text-center">
+    <div class="container">
+      <p class="section-label" style="color:var(--rose-light)">Stay Connected</p>
+      <h2 class="section-title" style="color:#fff;max-width:400px;margin:0 auto .75rem">Join the DomDom Family</h2>
+      <p class="section-desc" style="color:rgba(255,255,255,.75);margin:0 auto 2.5rem">Get beauty tips, new launch alerts and exclusive offers.</p>
+      <form class="newsletter-form" id="newsletter-form" style="justify-content:center">
+        <input type="email" class="newsletter-input" id="newsletter-email" placeholder="Enter your email" required>
+        <button type="submit" class="newsletter-submit">Subscribe ✨</button>
+      </form>
+    </div>
+  </section>
+</div>
+-->
+
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  document.getElementById('newsletter-form')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+    try { const d = await API.subscribe(email); Toast.show(`🎉 ${d.message}`, 'success'); e.target.reset(); }
+    catch(err) { Toast.show(err.message, 'error'); }
+  });
+});
+</script>
+</body>
+</html>

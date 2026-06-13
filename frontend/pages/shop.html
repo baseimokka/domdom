@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>Shop — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<link rel="stylesheet" href="../css/shop.css">
+</head>
+<body>
+<nav id="main-nav"></nav>
+
+<div class="page-hero" style="padding-top:7rem">
+  <div class="container">
+    <p class="section-label">DomDom Store</p>
+    <h1 class="section-title">Shop All Products</h1>
+    <p class="section-desc" style="margin:0 auto">Premium cruelty-free beauty — find your perfect match.</p>
+  </div>
+</div>
+
+<div class="marquee-strip">
+  <div class="marquee-inner">
+    <span>Free shipping over 3000EGP</span><span class="marquee-dot">✦</span>
+    <span>Cash on Delivery</span><span class="marquee-dot">✦</span>
+    <span>Cruelty-free & vegan</span><span class="marquee-dot">✦</span>
+    <span>30-day returns</span><span class="marquee-dot">✦</span>
+    <span>Free shipping over 3000EGP</span><span class="marquee-dot">✦</span>
+    <span>Cash on Delivery</span><span class="marquee-dot">✦</span>
+    <span>Cruelty-free & vegan</span><span class="marquee-dot">✦</span>
+    <span>30-day returns</span><span class="marquee-dot">✦</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="shop-layout">
+
+    <!-- FILTERS SIDEBAR — categories loaded dynamically -->
+    <aside class="filters-sidebar" id="filters-sidebar">
+      <!-- Header row: title + close button (close btn visible on mobile only) -->
+      <div class="filter-drawer-header">
+        <span class="filter-heading">🔍 Filters</span>
+        <button class="filter-close-btn" onclick="closeFilterDrawer()" aria-label="Close filters">✕</button>
+      </div>
+
+      <div class="filter-group">
+        <h4>Category</h4>
+        <div id="category-filters">
+          <!-- Loaded dynamically from API -->
+          <label class="filter-option">
+            <input type="radio" name="cat" value="all" checked onchange="applyFilters()"> All Products
+          </label>
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <div class="filter-group">
+        <h4>Price Range</h4>
+        <div class="price-range">
+          <input type="number" class="price-input" id="min-price" placeholder="0 EGP"   min="0" onchange="applyFilters()">
+          <span style="color:var(--muted)">—</span>
+          <input type="number" class="price-input" id="max-price" placeholder="200 EGP" min="0" onchange="applyFilters()">
+        </div>
+      </div>
+
+      <div class="filter-divider"></div>
+
+      <div class="filter-group">
+        <h4>Special</h4>
+        <label class="filter-option">
+          <input type="checkbox" value="bestseller" onchange="applyFilters()"> 🏆 Bestsellers
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" value="new" onchange="applyFilters()"> ✨ New Arrivals
+        </label>
+        <label class="filter-option">
+          <input type="checkbox" value="sale" onchange="applyFilters()"> 🏷️ On Sale
+        </label>
+      </div>
+
+      <div class="filter-divider"></div>
+      <button class="clear-filters-btn" onclick="clearFilters()">✕ Clear All Filters</button>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="shop-main">
+      <div class="shop-toolbar">
+        <span class="results-count" id="results-count">Loading…</span>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <button class="filter-toggle-btn" id="filter-toggle-btn" onclick="openFilterDrawer()" aria-label="Open filters">
+            ⚙ Filters
+            <span class="filter-active-dot"></span>
+          </button>
+          <select class="sort-select" id="sort-select" onchange="applyFilters()">
+            <option value="">Sort: Featured</option>
+            <option value="newest">Newest First</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+            <option value="rating">Top Rated</option>
+          </select>
+          <div class="view-toggles">
+            <button class="view-toggle-btn active" id="grid-btn" onclick="setView('grid')" title="Grid">⊞</button>
+            <button class="view-toggle-btn"        id="list-btn" onclick="setView('list')" title="List">☰</button>
+          </div>
+        </div>
+      </div>
+      <div class="products-grid" id="products-grid">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- Filter drawer backdrop -->
+<div class="filter-overlay" id="filter-overlay" onclick="closeFilterDrawer()"></div>
+
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+let allProducts = [];
+let currentView = 'grid';
+
+// ── Filter Drawer (mobile)
+function openFilterDrawer() {
+  document.getElementById('filters-sidebar').classList.add('filter-open');
+  document.getElementById('filter-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFilterDrawer() {
+  document.getElementById('filters-sidebar').classList.remove('filter-open');
+  document.getElementById('filter-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close drawer on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeFilterDrawer();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  await loadCategories();
+
+  // Pre-select category from URL ?cat=lips
+  const cat = new URLSearchParams(window.location.search).get('cat');
+  if (cat) {
+    const radio = document.querySelector(`input[name="cat"][value="${cat}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  await loadProducts();
+});
+
+// Load categories from MongoDB dynamically
+async function loadCategories() {
+  try {
+    const d    = await API.getCategories();
+    const cats = d.categories || [];
+    const container = document.getElementById('category-filters');
+
+    // Keep the "All" radio and add one per category
+    container.innerHTML = `
+      <label class="filter-option">
+        <input type="radio" name="cat" value="all" checked onchange="applyFilters()"> All Products
+      </label>
+      ${cats.map(c => `
+        <label class="filter-option">
+          <input type="radio" name="cat" value="${c.slug}" onchange="applyFilters()">
+          ${c.emoji || '✨'} ${c.name}
+        </label>`).join('')}`;
+  } catch {
+    // Fallback static list if API fails
+    console.warn('Could not load categories from API');
+  }
+}
+
+async function loadProducts() {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getProducts(buildParams());
+    allProducts = d.products;
+    renderProducts(d.products);
+  } catch (e) {
+    grid.innerHTML = `
+      <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">
+        Could not load products.<br>Make sure the server is running.
+      </p>`;
+    document.getElementById('results-count').textContent = '';
+  }
+}
+
+function buildParams() {
+  const cat    = document.querySelector('input[name="cat"]:checked')?.value;
+  const sort   = document.getElementById('sort-select').value;
+  const minP   = document.getElementById('min-price').value;
+  const maxP   = document.getElementById('max-price').value;
+  const badges = [...document.querySelectorAll('.filter-option input[type=checkbox]:checked')]
+    .map(c => c.value);
+  const params = {};
+  if (cat && cat !== 'all') params.category = cat;
+  if (sort)  params.sort     = sort;
+  if (minP)  params.minPrice = minP;
+  if (maxP)  params.maxPrice = maxP;
+  if (badges.length === 1) params.badge = badges[0];
+  return params;
+}
+
+function applyFilters() {
+  updateFilterIndicator();
+  loadProducts();
+}
+
+function clearFilters() {
+  document.querySelector('input[name="cat"][value="all"]').checked = true;
+  document.getElementById('sort-select').value = '';
+  document.getElementById('min-price').value   = '';
+  document.getElementById('max-price').value   = '';
+  document.querySelectorAll('.filter-option input[type=checkbox]')
+    .forEach(c => c.checked = false);
+  updateFilterIndicator();
+  loadProducts();
+  closeFilterDrawer();
+}
+
+function updateFilterIndicator() {
+  const btn = document.getElementById('filter-toggle-btn');
+  if (!btn) return;
+  const cat    = document.querySelector('input[name="cat"]:checked')?.value;
+  const minP   = document.getElementById('min-price').value;
+  const maxP   = document.getElementById('max-price').value;
+  const badges = document.querySelectorAll('.filter-option input[type=checkbox]:checked').length;
+  const hasFilters = (cat && cat !== 'all') || minP || maxP || badges > 0;
+  btn.classList.toggle('has-filters', hasFilters);
+}
+
+function setView(v) {
+  currentView = v;
+  document.getElementById('grid-btn').classList.toggle('active', v === 'grid');
+  document.getElementById('list-btn').classList.toggle('active', v === 'list');
+  document.getElementById('products-grid').classList.toggle('list-view', v === 'list');
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('products-grid');
+  document.getElementById('results-count').textContent =
+    `${products.length} product${products.length !== 1 ? 's' : ''} found`;
+
+  if (currentView === 'list') grid.classList.add('list-view');
+
+  if (!products.length) {
+    grid.innerHTML = `
+      <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">
+        No products match your filters.
+      </p>`;
+    return;
+  }
+  grid.innerHTML = products.map(p => cardHTML(p)).join('');
+  initReveal();
+}
+
+function cardHTML(p) {
+  const id    = String(p._id || p.id);
+  const img   = getProductImage(p);
+  const thumb = img
+    ? `<img src="${img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover">`
+    : `<span class="no-photo">${p.emoji || '✨'}</span>`;
+  const badge = p.badge
+    ? `<span class="badge ${p.badge==='sale'?'badge-gold':p.badge==='new'?'badge-green':'badge-rose'} badge-pos">
+        ${p.badge}
+       </span>`
+    : '';
+  const price = p.oldPrice
+    ? `<span class="old-price">${Number(p.oldPrice).toFixed(2)} EGP</span>${Number(p.finalPrice).toFixed(2)} EGP`
+    : `${Number(p.finalPrice).toFixed(2)} EGP`;
+
+  return `<div class="product-card reveal">
+    ${badge}
+    <button class="wish-btn" onclick="wishToggle('${id}', this)">🤍</button>
+    <div class="product-img" onclick="window.location='product.html?id=${id}'">${thumb}</div>
+    <div class="product-info">
+      <div class="product-brand">${p.brand || 'DomDom'}</div>
+      <div class="product-name" onclick="window.location='product.html?id=${id}'">${p.name}</div>
+      <div class="stars">
+        ${'★'.repeat(Math.round(p.rating||0))}${'☆'.repeat(5-Math.round(p.rating||0))}
+        <span>(${p.reviewCount||0})</span>
+      </div>
+      ${p.stock === 0
+        ? `<div style="font-size:.72rem;color:var(--rose);margin:.2rem 0">Out of Stock</div>`
+        : ''}
+      <div class="product-footer">
+        <div class="product-price">${price}</div>
+        <button class="add-cart-btn"
+          onclick="addToCart('${id}', this)"
+          ${p.stock === 0 ? 'disabled' : ''}>
+          ${p.stock === 0 ? 'Sold Out' : '+ Add'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function addToCart(id, btn) {
+  let p = allProducts.find(x => String(x._id || x.id) === id);
+  if (!p) {
+    try { const d = await API.getProduct(id); p = d.product; } catch { return; }
+  }
+  Cart.add(p);
+  btn.classList.add('added'); btn.textContent = '✓ Added';
+  setTimeout(() => { btn.classList.remove('added'); btn.textContent = '+ Add'; }, 1800);
+}
+
+async function wishToggle(id, btn) {
+  if (!Auth.isLoggedIn()) {
+    Auth.openModal('login');
+    Toast.show('Login to save to wishlist', 'info');
+    return;
+  }
+  try {
+    const d = await API.toggleWishlist(id);
+    btn.textContent = d.action === 'added' ? '❤️' : '🤍';
+    btn.classList.toggle('active', d.action === 'added');
+  } catch (e) { Toast.show(e.message, 'error'); }
+}
+</script>
+</body>
+</html>

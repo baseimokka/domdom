@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>My Profile — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/nav.css">
+<style>
+.profile-page { padding: 7rem 0 5rem; min-height: 80vh; }
+.profile-grid { display: grid; grid-template-columns: 240px 1fr; gap: 2rem; margin-top: 2rem; align-items: start; }
+.profile-sidebar {
+  background: white; border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.profile-avatar-box {
+  background: linear-gradient(135deg, var(--rose-light), var(--nude));
+  padding: 2rem; text-align: center;
+}
+.profile-avatar { font-size: 4rem; margin-bottom: .5rem; }
+.profile-name   { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; }
+.profile-email  { font-size: .8rem; color: var(--muted); margin-top: .2rem; }
+.profile-nav    { padding: .5rem 0; }
+.profile-nav-item {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .7rem 1.2rem; font-size: .88rem; color: var(--charcoal);
+  text-decoration: none; transition: background .15s; cursor: pointer;
+}
+.profile-nav-item:hover  { background: var(--cream); }
+.profile-nav-item.active { background: var(--rose-light); color: var(--rose-dark); font-weight: 500; }
+.profile-main { display: flex; flex-direction: column; gap: 1.5rem; }
+.profile-card { background: white; border-radius: var(--r-lg); padding: 2rem; box-shadow: var(--shadow-sm); }
+.profile-card h3 { font-size: 1.1rem; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 1px solid var(--nude); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.save-btn  { background: var(--rose); color: white; border: none; border-radius: var(--r-full);
+  padding: .75rem 2rem; font-family: 'DM Sans', sans-serif; font-size: .9rem;
+  font-weight: 500; cursor: pointer; transition: background .2s; }
+.save-btn:hover { background: var(--rose-dark); }
+.save-btn:disabled { opacity: .6; cursor: not-allowed; }
+.success-msg { font-size: .85rem; color: var(--success); margin-top: .5rem; }
+.error-msg   { font-size: .85rem; color: var(--danger);  margin-top: .5rem; }
+@media(max-width:768px){
+  .profile-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .profile-card{padding:1.25rem}
+  .profile-avatar-box{padding:1.5rem}
+}
+@media(max-width:480px){
+  .profile-avatar{font-size:3rem}
+}
+</style>
+</head>
+<body>
+<nav id="main-nav"></nav>
+
+<div class="profile-page">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="../index.html">Home</a><span>/</span><span>My Profile</span>
+    </div>
+
+    <div id="profile-content" style="display:none">
+      <div class="profile-grid">
+
+        <!-- SIDEBAR -->
+        <div class="profile-sidebar">
+          <div class="profile-avatar-box">
+            <div class="profile-avatar">👤</div>
+            <div class="profile-name"  id="sb-name">Loading…</div>
+            <div class="profile-email" id="sb-email"></div>
+          </div>
+          <nav class="profile-nav">
+            <div class="profile-nav-item active">✏️ Edit Profile</div>
+            <a class="profile-nav-item" href="orders.html">📦 My Orders</a>
+            <a class="profile-nav-item" href="wishlist.html">❤️ My Wishlist</a>
+            <div class="profile-nav-item" onclick="Auth.logout()" style="color:var(--danger)">🚪 Logout</div>
+          </nav>
+        </div>
+
+        <!-- MAIN -->
+        <div class="profile-main">
+
+          <!-- Personal Info -->
+          <div class="profile-card">
+            <h3>👤 Personal Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input class="form-control" type="text" id="p-name" placeholder="Your name">
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input class="form-control" type="tel" id="p-phone" placeholder="+20 100 000 0000">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input class="form-control" type="email" id="p-email" placeholder="you@example.com">
+            </div>
+            <p class="error-msg"   id="info-error"></p>
+            <p class="success-msg" id="info-success"></p>
+            <button class="save-btn" id="save-info-btn" onclick="savePersonalInfo()">Save Changes</button>
+          </div>
+
+          <!-- Address -->
+          <div class="profile-card">
+            <h3>📍 Default Address</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>City</label>
+                <input class="form-control" type="text" id="p-city" placeholder="Cairo">
+              </div>
+              <div class="form-group">
+                <label>Area / District</label>
+                <input class="form-control" type="text" id="p-area" placeholder="Maadi">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Street Address</label>
+              <input class="form-control" type="text" id="p-address" placeholder="Street, Building, Floor, Apartment">
+            </div>
+            <div class="form-group">
+              <label>Postal Code</label>
+              <input class="form-control" type="text" id="p-postal" placeholder="11511">
+            </div>
+            <p class="error-msg"   id="addr-error"></p>
+            <p class="success-msg" id="addr-success"></p>
+            <button class="save-btn" onclick="saveAddress()">Save Address</button>
+          </div>
+
+          <!-- Change Password -->
+          <div class="profile-card">
+            <h3>🔒 Change Password</h3>
+            <div class="form-group">
+              <label>Current Password</label>
+              <input class="form-control" type="password" id="p-current-pw" placeholder="Current password">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>New Password</label>
+                <input class="form-control" type="password" id="p-new-pw" placeholder="Min 6 characters">
+              </div>
+              <div class="form-group">
+                <label>Confirm New Password</label>
+                <input class="form-control" type="password" id="p-confirm-pw" placeholder="Repeat new password">
+              </div>
+            </div>
+            <p class="error-msg"   id="pw-error"></p>
+            <p class="success-msg" id="pw-success"></p>
+            <button class="save-btn" onclick="changePassword()">Update Password</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Not logged in -->
+    <div id="login-prompt" style="display:none;text-align:center;padding:5rem 2rem">
+      <div style="font-size:4rem;margin-bottom:1rem">🔒</div>
+      <h2>Please sign in to view your profile</h2>
+      <button class="btn btn-primary" style="margin-top:1.5rem"
+        onclick="Auth.openModal('login')">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<footer id="main-footer"></footer>
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script src="../js/utils.js"></script>
+<script src="../js/layout.js"></script>
+<script>
+let userData = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout();
+  if (!Auth.isLoggedIn()) {
+    document.getElementById('login-prompt').style.display = 'block';
+    return;
+  }
+  await loadProfile();
+});
+
+async function loadProfile() {
+  try {
+    const d  = await API.me();
+    userData = d.user;
+    document.getElementById('profile-content').style.display = 'block';
+    populateFields(userData);
+  } catch {
+    Toast.show('Could not load profile', 'error');
+  }
+}
+
+function populateFields(u) {
+  document.getElementById('sb-name').textContent  = u.name;
+  document.getElementById('sb-email').textContent = u.email;
+  document.getElementById('p-name').value         = u.name  || '';
+  document.getElementById('p-phone').value        = u.phone || '';
+  document.getElementById('p-email').value        = u.email || '';
+
+  // Default address
+  const def = (u.addresses || []).find(a => a.isDefault) || u.addresses?.[0];
+  if (def) {
+    document.getElementById('p-city').value    = def.city       || '';
+    document.getElementById('p-area').value    = def.area       || '';
+    document.getElementById('p-address').value = def.address    || '';
+    document.getElementById('p-postal').value  = def.postalCode || '';
+  }
+}
+
+async function savePersonalInfo() {
+  const errEl = document.getElementById('info-error');
+  const sucEl = document.getElementById('info-success');
+  const btn   = document.getElementById('save-info-btn');
+  errEl.textContent = ''; sucEl.textContent = '';
+
+  const name  = document.getElementById('p-name').value.trim();
+  const phone = document.getElementById('p-phone').value.trim();
+  const email = document.getElementById('p-email').value.trim();
+
+  if (!name)  return errEl.textContent = 'Name is required';
+  if (!email) return errEl.textContent = 'Email is required';
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const d = await API.updateProfile({ name, phone, email });
+    // Update stored user and token
+    Auth.login({ ...Auth.getUser(), name: d.user.name, email: d.user.email }, d.token);
+    document.getElementById('sb-name').textContent  = d.user.name;
+    document.getElementById('sb-email').textContent = d.user.email;
+    sucEl.textContent = '✓ Profile updated successfully!';
+    Toast.show('Profile updated! 🌸', 'success');
+  } catch (e) { errEl.textContent = e.message; }
+  finally { btn.disabled = false; btn.textContent = 'Save Changes'; }
+}
+
+async function saveAddress() {
+  const errEl = document.getElementById('addr-error');
+  const sucEl = document.getElementById('addr-success');
+  errEl.textContent = ''; sucEl.textContent = '';
+
+  const city    = document.getElementById('p-city').value.trim();
+  const area    = document.getElementById('p-area').value.trim();
+  const address = document.getElementById('p-address').value.trim();
+  const postal  = document.getElementById('p-postal').value.trim();
+
+  if (!city)    return errEl.textContent = 'City is required';
+  if (!address) return errEl.textContent = 'Address is required';
+
+  try {
+    await API.updateProfile({ city, area, address, postalCode: postal });
+    sucEl.textContent = '✓ Address saved successfully!';
+    Toast.show('Address saved!', 'success');
+  } catch (e) { errEl.textContent = e.message; }
+}
+
+async function changePassword() {
+  const errEl     = document.getElementById('pw-error');
+  const sucEl     = document.getElementById('pw-success');
+  errEl.textContent = ''; sucEl.textContent = '';
+
+  const current = document.getElementById('p-current-pw').value;
+  const newPw   = document.getElementById('p-new-pw').value;
+  const confirm = document.getElementById('p-confirm-pw').value;
+
+  if (!current) return errEl.textContent = 'Enter your current password';
+  if (!newPw)   return errEl.textContent = 'Enter a new password';
+  if (newPw.length < 6) return errEl.textContent = 'New password must be at least 6 characters';
+  if (newPw !== confirm) return errEl.textContent = 'Passwords do not match';
+
+  try {
+    await API.changePassword({ currentPassword: current, newPassword: newPw });
+    sucEl.textContent = '✓ Password changed successfully!';
+    document.getElementById('p-current-pw').value = '';
+    document.getElementById('p-new-pw').value = '';
+    document.getElementById('p-confirm-pw').value = '';
+    Toast.show('Password updated!', 'success');
+  } catch (e) { errEl.textContent = e.message; }
+}
+</script>
+</body>
+</html>

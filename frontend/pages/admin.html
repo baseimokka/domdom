@@ -1,0 +1,2923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/favicon.png">
+<title>Admin Dashboard — DomDom Store</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F6F9;color:#2A2323;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:250px;background:#2A2323;color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.sidebar-logo{padding:1.8rem 1.5rem;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:#C8506E;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo span{color:#fff;font-style:italic}
+.sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.5rem;color:rgba(255,255,255,.65);cursor:pointer;transition:all .2s;font-size:.9rem;border-left:3px solid transparent;user-select:none}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(200,80,110,.15);color:#C8506E;border-left-color:#C8506E}
+.nav-item .nav-icon{font-size:1.1rem;width:20px;text-align:center}
+.nav-section-label{padding:.65rem 1.5rem .3rem;font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.sidebar-footer{padding:1.2rem 1.5rem;border-top:1px solid rgba(255,255,255,.08)}
+.sidebar-user{font-size:.82rem;color:rgba(255,255,255,.5);margin-bottom:.75rem}
+.sidebar-user strong{display:block;color:#fff;font-size:.9rem}
+.btn-logout{width:100%;padding:.55rem;background:rgba(200,80,110,.2);color:#C8506E;border:1px solid rgba(200,80,110,.3);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s}
+.btn-logout:hover{background:#C8506E;color:#fff}
+
+/* MAIN */
+.admin-main{margin-left:250px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.admin-topbar{background:#fff;padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06);position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700}
+.admin-content{padding:2rem;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-bottom:2rem}
+.stat-card{background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;gap:1rem}
+.stat-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.stat-icon.rose{background:#F4D6DF}.stat-icon.gold{background:#F0E3B8}.stat-icon.green{background:#D4E8D4}.stat-icon.blue{background:#D4E0F4}
+.stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;line-height:1}
+.stat-label{font-size:.78rem;color:#7A6B6B;margin-top:.2rem}
+
+/* TABLE */
+.table-box{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1.5rem}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 1.5rem;border-bottom:1px solid #E8D5C4;flex-wrap:wrap;gap:.5rem}
+.table-header h3{font-size:1rem;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{background:#FAF6F1;padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A6B6B}
+td{padding:.8rem 1rem;border-bottom:1px solid #F4EEE8;font-size:.85rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FFFAF8}
+.prod-thumb{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#FAF6F1,#E8D5C4);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;flex-shrink:0}
+.prod-thumb img{width:100%;height:100%;object-fit:cover}
+.action-btns{display:flex;gap:.35rem;flex-wrap:wrap}
+.btn-tbl{padding:.3rem .65rem;border:none;border-radius:6px;font-size:.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-edit   {background:#F0E3B8;color:#8B6020}.btn-edit:hover   {background:#C9A84C;color:#fff}
+.btn-del    {background:#F4D6DF;color:#8B2E47}.btn-del:hover    {background:#C8506E;color:#fff}
+.btn-view   {background:#D4E0F4;color:#2E4E8B}.btn-view:hover   {background:#5B9BD5;color:#fff}
+.btn-restock{background:#D4E8D4;color:#2E6B3A}.btn-restock:hover{background:#5A9E6A;color:#fff}
+.btn-green  {background:#D4E8D4;color:#2E6B3A;border:none;border-radius:8px;padding:.5rem 1.1rem;font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer}
+.btn-green:hover{background:#5A9E6A;color:#fff}
+.status-badge{padding:.2rem .7rem;border-radius:20px;font-size:.7rem;font-weight:500;text-transform:capitalize}
+.status-Pending{background:#F0E3B8;color:#8B6020}
+.status-Processing{background:#D4E0F4;color:#2E4E8B}
+.status-Shipped{background:#D4E8D4;color:#2E6B3A}
+.status-Delivered{background:#D4E8D4;color:#2E6B3A}
+.status-Cancelled{background:#F4D6DF;color:#8B2E47}
+.stock-ok{color:#2E6B3A;font-weight:600}.stock-low{color:#8B6020;font-weight:600}.stock-out{color:#C8506E;font-weight:600}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:flex;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal-overlay.hidden{display:none}
+.modal-box{background:#fff;border-radius:20px;width:100%;max-width:700px;padding:2rem;position:relative;animation:fadeIn .25s ease}
+.modal-box h2{font-size:1.5rem;margin-bottom:1.5rem}
+.modal-close-btn{position:absolute;top:1.2rem;right:1.2rem;background:none;border:none;font-size:1.4rem;cursor:pointer;color:#7A6B6B}
+.modal-close-btn:hover{color:#2A2323}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}
+.form-group label{font-size:.82rem;font-weight:500}
+.form-control{padding:.7rem .9rem;border:1.5px solid #E8D5C4;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s;background:#fff}
+.form-control:focus{border-color:#C8506E}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A6B6B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .8rem center;padding-right:2.2rem}
+.form-error{font-size:.78rem;color:#C8506E}
+
+/* PHOTO UPLOAD */
+.photo-upload-area{border:2px dashed #E8D5C4;border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;background:#FAF6F1}
+.photo-upload-area:hover{border-color:#C8506E}
+.photo-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.photo-previews{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+.photo-preview-item{position:relative;width:70px;height:70px}
+.photo-preview-item img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:2px solid #E8D5C4}
+.photo-remove-btn{position:absolute;top:-6px;right:-6px;width:18px;height:18px;background:#C8506E;color:#fff;border:none;border-radius:50%;font-size:.65rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* COLOR ROWS */
+.colors-list{display:flex;flex-direction:column;gap:.6rem;margin-bottom:.6rem}
+.color-row{display:flex;flex-direction:column;gap:.45rem;background:#FAF6F1;border-radius:10px;padding:.65rem;border:1.5px solid #E8D5C4}
+.color-row-controls{display:grid;grid-template-columns:1fr 44px auto auto;gap:.45rem;align-items:center}
+.btn-add-color{background:#F4D6DF;color:#8B2E47;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.8rem;font-family:'DM Sans',sans-serif;cursor:pointer}
+.btn-add-color:hover{background:#C8506E;color:#fff}
+.btn-remove-color{background:#F4D6DF;color:#8B2E47;border:none;border-radius:50%;width:24px;height:24px;font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.color-img-upload-btn{display:inline-flex;align-items:center;gap:.25rem;padding:.3rem .6rem;background:#D4E0F4;color:#2E4E8B;border-radius:8px;font-size:.75rem;cursor:pointer;white-space:nowrap;transition:all .2s;border:none;font-family:'DM Sans',sans-serif}
+.color-img-upload-btn:hover{background:#5B9BD5;color:#fff}
+.color-thumbs{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.15rem}
+.color-thumb{position:relative;width:56px;height:56px;flex-shrink:0}
+.color-thumb img{width:100%;height:100%;object-fit:cover;border-radius:8px;border:1.5px solid #E8D5C4}
+.color-thumb-remove{position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:#C8506E;color:#fff;border:none;border-radius:50%;font-size:.55rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* STATUS SELECT */
+.status-select{padding:.35rem .7rem;border:1.5px solid #E8D5C4;border-radius:8px;font-size:.82rem;font-family:'DM Sans',sans-serif;background:#fff;cursor:pointer}
+
+/* PAYMENT STATUS BADGES */
+.status-PendingVerification{background:#F0E3B8;color:#8B6020}
+.status-Verified{background:#D4E8D4;color:#2E6B3A}
+.status-Rejected{background:#F4D6DF;color:#8B2E47}
+
+/* PROOF PREVIEW (lightbox) */
+.proof-lightbox-img{max-width:88vw;max-height:82vh;object-fit:contain;border-radius:12px;display:block;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+
+/* ALERT CARDS */
+.alert-card{background:#fff;border-left:4px solid #C9A84C;border-radius:12px;padding:1rem 1.2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 6px rgba(0,0,0,.05);margin-bottom:.6rem}
+.alert-card.out{border-left-color:#C8506E}
+.alert-info{display:flex;align-items:center;gap:.6rem}
+
+/* CATEGORY CARDS */
+.category-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;padding:1.2rem}
+.cat-admin-card{background:#FAF6F1;border-radius:12px;padding:1.2rem;display:flex;align-items:center;justify-content:space-between;border:1.5px solid #E8D5C4}
+.cat-admin-info{display:flex;align-items:center;gap:.6rem;font-size:.9rem;font-weight:500}
+.cat-admin-emoji{font-size:1.5rem}
+
+/* MISC */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:36px;height:36px;border:3px solid #E8D5C4;border-top-color:#C8506E;border-radius:50%;animation:spin .7s linear infinite;margin:2rem auto}
+#toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.6rem}
+.toast{background:#2A2323;color:#fff;padding:.9rem 1.3rem;border-radius:12px;font-size:.85rem;display:flex;align-items:center;gap:.6rem;animation:fadeIn .3s ease;min-width:240px}
+.toast.success{border-left:4px solid #5A9E6A}.toast.error{border-left:4px solid #C8506E}.toast.info{border-left:4px solid #5B9BD5}
+/* MOBILE TOGGLE */
+.admin-menu-btn{display:none;background:none;border:none;font-size:1.25rem;cursor:pointer;color:var(--charcoal,#2A2323);padding:.3rem .4rem;border-radius:8px;transition:background .2s;line-height:1}
+.admin-menu-btn:hover{background:rgba(0,0,0,.06)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99}
+.sidebar-overlay.open{display:block}
+
+@media(max-width:1024px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .admin-main{margin-left:0}
+  .sidebar{transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  .sidebar.open{transform:translateX(0)}
+  .form-grid{grid-template-columns:1fr}
+  .admin-menu-btn{display:inline-flex;align-items:center;justify-content:center}
+  .table-box{overflow-x:auto}
+}
+@media(max-width:600px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .admin-topbar{padding:.75rem 1rem}
+  .admin-content{padding:1rem}
+  .modal-overlay{padding:1rem .5rem}
+  .modal-box{padding:1.5rem 1.25rem}
+  #toast-container{bottom:1rem;right:1rem;left:1rem}
+  .toast{min-width:0}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">Dom<span>Dom</span> Admin</div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard')">
+      <span class="nav-icon">📊</span> Dashboard
+    </div>
+    <div class="nav-item" data-panel="products" onclick="switchPanel('products')">
+      <span class="nav-icon">📦</span> Products
+    </div>
+    <div class="nav-item" data-panel="categories" onclick="switchPanel('categories')">
+      <span class="nav-icon">🏷️</span> Categories
+    </div>
+    <div class="nav-item" data-panel="orders" onclick="switchPanel('orders')">
+      <span class="nav-icon">🛍</span> Orders
+    </div>
+    <div class="nav-item" data-panel="payments" onclick="switchPanel('payments')">
+      <span class="nav-icon">💳</span> Payments
+      <span id="nav-pending-badge" style="display:none;margin-left:auto;background:#C8506E;color:#fff;border-radius:9999px;font-size:.62rem;font-weight:700;padding:.1rem .45rem;line-height:1.4"></span>
+    </div>
+    <div class="nav-item" data-panel="customers" onclick="switchPanel('customers')">
+      <span class="nav-icon">👥</span> Customers
+    </div>
+    <div class="nav-item" data-panel="inventory" onclick="switchPanel('inventory')">
+      <span class="nav-icon">⚠️</span> Inventory
+    </div>
+    <div class="nav-item" data-panel="coupons" onclick="switchPanel('coupons')">
+      <span class="nav-icon">🎟️</span> Coupons
+    </div>
+    <div class="nav-section-label">Marketing</div>
+    <div class="nav-item" data-panel="hero-banners" onclick="switchPanel('hero-banners')">
+      <span class="nav-icon">🎨</span> Hero Banners
+    </div>
+    <div class="nav-section-label">Homepage</div>
+    <div class="nav-item" data-panel="home-categories" onclick="switchPanel('home-categories')">
+      <span class="nav-icon">🗂️</span> Categories
+    </div>
+    <div class="nav-item" data-panel="bestsellers" onclick="switchPanel('bestsellers')">
+      <span class="nav-icon">⭐</span> Best Sellers
+    </div>
+    <div class="nav-item" data-panel="new-arrivals" onclick="switchPanel('new-arrivals')">
+      <span class="nav-icon">🆕</span> New Arrivals
+    </div>
+    <div class="nav-section-label">System</div>
+    <div class="nav-item" data-panel="settings" onclick="switchPanel('settings')">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <strong id="sidebar-user-name">Admin</strong>
+      <span id="sidebar-user-email">admin@domdom.com</span>
+    </div>
+    <button class="btn-logout" onclick="adminLogout()">🚪 Logout</button>
+  </div>
+</aside>
+
+<!-- Sidebar backdrop (mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<div class="admin-main">
+  <div class="admin-topbar">
+    <div style="display:flex;align-items:center;gap:.75rem">
+      <button class="admin-menu-btn" id="admin-menu-btn" onclick="toggleAdminSidebar()" aria-label="Toggle menu">☰</button>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center">
+      <a href="../index.html" target="_blank" style="font-size:.82rem;color:#7A6B6B;text-decoration:none">🌸 View Store</a>
+      <button class="btn-tbl btn-view" onclick="openProductModal()">+ Add Product</button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- ACCESS DENIED -->
+    <div id="access-denied" style="display:none;text-align:center;padding:5rem 2rem">
+      <div style="font-size:4rem;margin-bottom:1rem">🔒</div>
+      <h2>Admin Access Required</h2>
+      <p style="color:#7A6B6B;margin:.75rem 0 1.5rem">Sign in with your admin account.</p>
+      <div style="max-width:360px;margin:0 auto">
+        <div class="form-group"><label>Email</label>
+          <input class="form-control" type="email" id="al-email" value="admin@domdom.com"></div>
+        <div class="form-group"><label>Password</label>
+          <input class="form-control" type="password" id="al-password" value="password123"></div>
+        <p class="form-error" id="al-error"></p>
+        <button class="btn-tbl btn-edit" style="width:100%;padding:.7rem;font-size:.9rem;margin-top:.5rem"
+          onclick="adminLogin()">Login as Admin</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="stats-grid" id="stats-grid"><div class="spinner"></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="table-box">
+          <div class="table-header">
+            <h3>📋 Recent Orders</h3>
+            <button class="btn-tbl btn-view" onclick="switchPanel('orders')">View all</button>
+          </div>
+          <div id="recent-orders-list" style="padding:.5rem 0"><div class="spinner"></div></div>
+        </div>
+        <div class="table-box">
+          <div class="table-header">
+            <h3>⚠️ Low Stock</h3>
+            <button class="btn-tbl btn-view" onclick="switchPanel('inventory')">View all</button>
+          </div>
+          <div id="low-stock-list" style="padding:1rem"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="panel" id="panel-products">
+      <div class="table-box">
+        <div class="table-header" style="flex-wrap:wrap;gap:.75rem">
+          <h3>All Products <span id="prod-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+            <input type="text" id="product-search" placeholder="Search name, category, SKU…"
+              style="padding:.45rem .9rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none;width:240px"
+              oninput="filterProducts(this.value)">
+            <button class="btn-tbl btn-view" onclick="openProductModal()">+ Add Product</button>
+          </div>
+        </div>
+        <div id="products-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="panel" id="panel-categories">
+      <div class="table-box">
+        <div class="table-header">
+          <h3>Categories <span id="cat-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <button class="btn-tbl btn-view" onclick="openCategoryModal()">+ Add Category</button>
+        </div>
+        <div id="categories-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="panel" id="panel-orders">
+      <div class="table-box">
+        <div class="table-header" style="flex-wrap:wrap;gap:.75rem">
+          <h3>All Orders <span id="orders-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+            <!-- Status filter -->
+            <select id="filter-status" onchange="applyOrderFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff">
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Processing">Processing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+            <!-- City filter -->
+            <input type="text" id="filter-city" placeholder="Filter by city…"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;width:150px"
+              oninput="applyOrderFilters()">
+            <!-- Date from -->
+            <input type="date" id="filter-date-from" onchange="applyOrderFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem">
+            <!-- Date to -->
+            <input type="date" id="filter-date-to" onchange="applyOrderFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem">
+            <!-- Sort -->
+            <select id="filter-sort" onchange="applyOrderFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff">
+              <option value="newest">Newest → Oldest</option>
+              <option value="oldest">Oldest → Newest</option>
+            </select>
+            <!-- Clear -->
+            <button class="btn-tbl btn-edit" onclick="clearOrderFilters()">✕ Clear</button>
+          </div>
+        </div>
+        <div id="orders-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="panel" id="panel-customers">
+      <div class="table-box">
+        <div class="table-header">
+          <h3>Customers <span id="users-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+        </div>
+        <div id="customers-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="panel" id="panel-inventory">
+      <div id="inventory-alerts-wrap"><div class="spinner"></div></div>
+    </div>
+
+    <!-- COUPONS -->
+    <div class="panel" id="panel-coupons">
+      <div class="table-box">
+        <div class="table-header">
+          <h3>Coupons <span id="coupons-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <button class="btn-tbl btn-view" onclick="openCouponModal()">+ Add Coupon</button>
+        </div>
+        <div id="coupons-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="panel" id="panel-payments">
+      <div class="table-box">
+        <div class="table-header" style="flex-wrap:wrap;gap:.75rem">
+          <h3>Manual Payments <span id="payments-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">
+            <select id="filter-pay-method" onchange="applyPaymentFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff">
+              <option value="">All Methods</option>
+              <option value="InstaPay">InstaPay</option>
+              <option value="VodafoneCash">Vodafone Cash</option>
+            </select>
+            <select id="filter-pay-status" onchange="applyPaymentFilters()"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;background:#fff">
+              <option value="">All Statuses</option>
+              <option value="PendingVerification">Pending Verification</option>
+              <option value="Verified">Verified</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+            <input type="text" id="search-payments" placeholder="Order #, name, email, phone…"
+              style="padding:.45rem .8rem;border:1.5px solid #E8D5C4;border-radius:8px;
+                font-family:'DM Sans',sans-serif;font-size:.82rem;width:220px"
+              oninput="applyPaymentFilters()">
+            <button class="btn-tbl btn-edit" onclick="clearPaymentFilters()">✕ Clear</button>
+          </div>
+        </div>
+        <div id="payments-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="panel" id="panel-settings">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+        <div class="table-box">
+          <div class="table-header"><h3>⚙️ Payment Settings</h3></div>
+          <div style="padding:1.5rem">
+            <div class="form-group">
+              <label class="form-group label">InstaPay Account Name</label>
+              <input class="form-control" type="text" id="s-instapay-name" placeholder="e.g. DomDom Store">
+            </div>
+            <div class="form-group">
+              <label>InstaPay Phone / Username</label>
+              <input class="form-control" type="text" id="s-instapay-id" placeholder="e.g. +201000000000">
+            </div>
+            <div class="form-group">
+              <label>Vodafone Cash Number</label>
+              <input class="form-control" type="text" id="s-vcash-number" placeholder="e.g. +201000000000">
+            </div>
+            <div class="form-group">
+              <label>Payment Instructions <span style="font-size:.72rem;color:#7A6B6B">(shown to customer at checkout)</span></label>
+              <textarea class="form-control" id="s-pay-instructions" rows="3"
+                placeholder="e.g. Transfer the exact total and upload a clear screenshot…"
+                style="resize:vertical"></textarea>
+            </div>
+            <p class="form-error" id="settings-error"></p>
+            <button class="btn-tbl btn-view" style="padding:.7rem 1.5rem;font-size:.9rem"
+              onclick="saveSettings()">💾 Save Settings</button>
+          </div>
+        </div>
+        <div style="background:#F0E3B8;border-radius:16px;padding:1.4rem;font-size:.84rem;color:#5E4A0A;line-height:1.65">
+          <p style="font-weight:600;margin-bottom:.6rem">ℹ️ About Payment Settings</p>
+          <p>These values are displayed to the customer during checkout when they select InstaPay or Vodafone Cash as payment method.</p>
+          <br>
+          <p><strong>InstaPay Account Name</strong> — the name the customer should transfer to.</p>
+          <p style="margin-top:.4rem"><strong>InstaPay Phone / Username</strong> — the phone number or username linked to your InstaPay account.</p>
+          <p style="margin-top:.4rem"><strong>Vodafone Cash Number</strong> — the Vodafone Cash wallet number.</p>
+          <p style="margin-top:.4rem"><strong>Payment Instructions</strong> — an optional note shown below the account details.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO BANNERS -->
+    <div class="panel" id="panel-hero-banners">
+      <div style="background:#F0E3B8;border-radius:12px;padding:.85rem 1.2rem;margin-bottom:1.2rem;font-size:.84rem;color:#5E4A0A;display:flex;align-items:flex-start;gap:.6rem">
+        <span style="font-size:1rem;flex-shrink:0">ℹ️</span>
+        <span>These banners appear as a slider on the homepage, <strong>below the main hero section</strong>. Only active banners are displayed, sorted by order (lowest first). The static hero above them is permanent and cannot be managed here.</span>
+      </div>
+      <div class="table-box">
+        <div class="table-header">
+          <h3>Hero Banners <span id="banners-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <button class="btn-tbl btn-view" onclick="openBannerModal()">+ Add Banner</button>
+        </div>
+        <div id="banners-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- HOMEPAGE CATEGORIES -->
+    <div class="panel" id="panel-home-categories">
+      <div style="background:#F0E3B8;border-radius:12px;padding:.85rem 1.2rem;margin-bottom:1.2rem;font-size:.84rem;color:#5E4A0A;display:flex;align-items:flex-start;gap:.6rem">
+        <span style="font-size:1rem;flex-shrink:0">ℹ️</span>
+        <span>These cards make up the <strong>"Shop by Category"</strong> section on the homepage. Each card links to the shop filtered by its connected category. Only active cards show, sorted by order (lowest first).</span>
+      </div>
+      <div class="table-box">
+        <div class="table-header">
+          <h3>Homepage Categories <span id="home-cats-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <button class="btn-tbl btn-view" onclick="openHomeCatModal()">+ Add Category Card</button>
+        </div>
+        <div id="home-cats-table-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- BEST SELLERS -->
+    <div class="panel" id="panel-bestsellers">
+      <div style="background:#F0E3B8;border-radius:12px;padding:.85rem 1.2rem;margin-bottom:1.2rem;font-size:.84rem;color:#5E4A0A;display:flex;align-items:flex-start;gap:.6rem">
+        <span style="font-size:1rem;flex-shrink:0">ℹ️</span>
+        <span>Hand-pick the products shown in the homepage <strong>Best Sellers</strong> row. If you add none, the homepage automatically shows the most-reviewed products. Active picks show first, up to the max below.</span>
+      </div>
+      <div id="feature-panel-bestsellers"></div>
+    </div>
+
+    <!-- NEW ARRIVALS -->
+    <div class="panel" id="panel-new-arrivals">
+      <div style="background:#F0E3B8;border-radius:12px;padding:.85rem 1.2rem;margin-bottom:1.2rem;font-size:.84rem;color:#5E4A0A;display:flex;align-items:flex-start;gap:.6rem">
+        <span style="font-size:1rem;flex-shrink:0">ℹ️</span>
+        <span>Hand-pick the products shown in the homepage <strong>New Arrivals</strong> row. If you add none, the homepage automatically shows the newest products. Active picks show first, up to the max below.</span>
+      </div>
+      <div id="feature-panel-new-arrivals"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- VERIFY PAYMENT MODAL -->
+<div class="modal-overlay hidden" id="verify-payment-modal">
+  <div class="modal-box" style="max-width:740px">
+    <button class="modal-close-btn" onclick="closeVerifyModal()">✕</button>
+    <h2>Payment Verification</h2>
+    <div id="verify-payment-body" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
+<!-- PROOF PREVIEW LIGHTBOX -->
+<div class="modal-overlay hidden" id="proof-lightbox" onclick="closeProofLightbox()"
+  style="align-items:center;justify-content:center;padding:1rem">
+  <div style="position:relative;text-align:center" onclick="event.stopPropagation()">
+    <img id="proof-lightbox-img" src="" alt="Payment Proof" class="proof-lightbox-img">
+    <button onclick="closeProofLightbox()"
+      style="position:absolute;top:-14px;right:-14px;background:#C8506E;color:#fff;border:none;
+        border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)">✕</button>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay hidden" id="product-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeProductModal()">✕</button>
+    <h2 id="modal-title">Add New Product</h2>
+    <form id="product-form">
+      <input type="hidden" id="edit-id">
+
+      <!-- Photos -->
+      <div class="form-group">
+        <label>Product Photos <span style="font-size:.72rem;color:#7A6B6B">(up to 10, max 5MB each)</span></label>
+        <div class="photo-upload-area" id="photo-upload-area">
+          <input type="file" id="photo-input" accept="image/*" multiple onchange="previewPhotos(this)">
+          <div id="photo-placeholder">
+            <div style="font-size:2.5rem;margin-bottom:.4rem">📷</div>
+            <p style="font-size:.85rem;color:#7A6B6B">Click to upload photos</p>
+          </div>
+        </div>
+        <div class="photo-previews" id="photo-previews"></div>
+        <div id="existing-photos" style="display:none;margin-top:.5rem">
+          <p style="font-size:.75rem;color:#7A6B6B;margin-bottom:.4rem">Current photos:</p>
+          <div class="photo-previews" id="existing-photos-list"></div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Product Name *</label>
+          <input class="form-control" type="text" id="p-name" placeholder="e.g. Velvet Matte Lipstick" required>
+        </div>
+        <div class="form-group">
+          <label>Brand</label>
+          <input class="form-control" type="text" id="p-brand" value="DomDom">
+        </div>
+        <div class="form-group">
+          <label>Category *</label>
+          <select class="form-control" id="p-category" required>
+            <option value="">Select category…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Emoji (fallback)</label>
+          <input class="form-control" type="text" id="p-emoji" placeholder="💄" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label>Price ($) *</label>
+          <input class="form-control" type="number" id="p-price" placeholder="24.99" step="0.01" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>Old Price ($) <span style="font-size:.72rem;color:#7A6B6B">leave blank if not on sale</span></label>
+          <input class="form-control" type="number" id="p-old-price" placeholder="" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label>Stock Quantity *</label>
+          <input class="form-control" type="number" id="p-stock" placeholder="50" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>Low Stock Alert At</label>
+          <input class="form-control" type="number" id="p-threshold" placeholder="10" min="1">
+        </div>
+        <div class="form-group">
+          <label>SKU / Product Code</label>
+          <input class="form-control" type="text" id="p-sku" placeholder="DD-LIP-001">
+        </div>
+        <div class="form-group">
+          <label>Badge</label>
+          <select class="form-control" id="p-badge">
+            <option value="">None</option>
+            <option value="new">✨ New</option>
+            <option value="bestseller">🏆 Bestseller</option>
+            <option value="sale">🏷️ Sale</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea class="form-control" id="p-description" rows="3" placeholder="Describe the product…" style="resize:vertical"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Key Details <span style="font-size:.72rem;color:#7A6B6B">(one per line)</span></label>
+        <textarea class="form-control" id="p-details" rows="3"
+          placeholder="12 hour wear&#10;Cruelty-free & vegan&#10;12 shades available" style="resize:vertical"></textarea>
+      </div>
+
+      <!-- Colors -->
+      <div class="form-group">
+        <label>Colors / Shades</label>
+        <div class="colors-list" id="colors-list"></div>
+        <button type="button" class="btn-add-color" onclick="addColorRow()">+ Add Color</button>
+      </div>
+
+      <p class="form-error" id="product-form-error"></p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem">
+        <button type="submit" class="btn-tbl btn-view"
+          style="flex:1;padding:.8rem;font-size:.9rem" id="save-product-btn">Save Product</button>
+        <button type="button" class="btn-tbl btn-edit"
+          style="padding:.8rem 1.2rem" onclick="closeProductModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-overlay hidden" id="category-modal">
+  <div class="modal-box" style="max-width:420px">
+    <button class="modal-close-btn" onclick="closeCategoryModal()">✕</button>
+    <h2 id="cat-modal-title">Add New Category</h2>
+    <div style="margin-top:1.2rem">
+      <input type="hidden" id="edit-cat-id">
+      <div class="form-group">
+        <label>Category Name *</label>
+        <input class="form-control" type="text" id="cat-name" placeholder="e.g. Body Splash">
+      </div>
+      <div class="form-group">
+        <label>Emoji</label>
+        <input class="form-control" type="text" id="cat-emoji" placeholder="💦" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label>Sort Order <span style="font-size:.72rem;color:#7A6B6B">(lower = appears first)</span></label>
+        <input class="form-control" type="number" id="cat-order" placeholder="0" min="0">
+      </div>
+      <p class="form-error" id="cat-error"></p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem">
+        <button class="btn-tbl btn-view" style="flex:1;padding:.8rem;font-size:.9rem"
+          onclick="saveCategory()">Save Category</button>
+        <button class="btn-tbl btn-edit" style="padding:.8rem 1.2rem"
+          onclick="closeCategoryModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="modal-overlay hidden" id="order-modal">
+  <div class="modal-box" style="max-width:680px">
+    <button class="modal-close-btn" onclick="closeOrderModal()">✕</button>
+    <h2>Order Details</h2>
+    <div id="order-detail-body" style="margin-top:1.2rem"></div>
+  </div>
+</div>
+
+<!-- RESTOCK MODAL -->
+<div class="modal-overlay hidden" id="restock-modal">
+  <div class="modal-box" style="max-width:380px">
+    <button class="modal-close-btn" onclick="closeRestockModal()">✕</button>
+    <h2>Restock Product</h2>
+    <p id="restock-product-name" style="color:#7A6B6B;margin:.5rem 0 1.2rem;font-size:.9rem"></p>
+    <div class="form-group">
+      <label>Quantity to Add</label>
+      <input class="form-control" type="number" id="restock-qty" placeholder="e.g. 50" min="1">
+    </div>
+    <button class="btn-tbl btn-restock" style="width:100%;padding:.8rem;font-size:.9rem;margin-top:.5rem"
+      onclick="submitRestock()">✓ Add Stock</button>
+  </div>
+</div>
+
+<!-- COUPON MODAL -->
+<div class="modal-overlay hidden" id="coupon-modal">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close-btn" onclick="closeCouponModal()">✕</button>
+    <h2 id="coupon-modal-title">Add New Coupon</h2>
+    <div style="margin-top:1.2rem">
+      <input type="hidden" id="edit-coupon-id">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Coupon Code *</label>
+          <input class="form-control" type="text" id="c-code" placeholder="e.g. SAVE10"
+            style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-group">
+          <label>Discount Type *</label>
+          <select class="form-control" id="c-type">
+            <option value="percentage">Percentage (%)</option>
+            <option value="fixed">Fixed Amount (EGP)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Discount Value *</label>
+          <input class="form-control" type="number" id="c-value" placeholder="e.g. 15" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Max Uses <span style="font-size:.72rem;color:#7A6B6B">(blank = unlimited)</span></label>
+          <input class="form-control" type="number" id="c-max-uses" placeholder="e.g. 100" min="1">
+        </div>
+        <div class="form-group">
+          <label>Valid From <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="date" id="c-valid-from">
+        </div>
+        <div class="form-group">
+          <label>Valid Until <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="date" id="c-valid-until">
+        </div>
+      </div>
+
+      <div class="form-group" style="flex-direction:row;align-items:center;gap:.75rem;margin-top:.25rem">
+        <input type="checkbox" id="c-active" checked style="width:16px;height:16px;cursor:pointer">
+        <label for="c-active" style="cursor:pointer;font-size:.88rem;font-weight:500">Active (coupon can be used)</label>
+      </div>
+
+      <p class="form-error" id="coupon-error"></p>
+      <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+        <button class="btn-tbl btn-view" style="flex:1;padding:.8rem;font-size:.9rem"
+          onclick="saveCoupon()">Save Coupon</button>
+        <button class="btn-tbl btn-edit" style="padding:.8rem 1.2rem"
+          onclick="closeCouponModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BANNER FORM MODAL -->
+<div class="modal-overlay hidden" id="banner-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeBannerModal()">✕</button>
+    <h2 id="banner-modal-title">Add New Banner</h2>
+    <div style="margin-top:1.2rem">
+      <input type="hidden" id="edit-banner-id">
+
+      <!-- Image Upload -->
+      <div class="form-group">
+        <label>Banner Image <span style="font-size:.72rem;color:#7A6B6B">(max 5MB · jpg, png, webp)</span></label>
+        <div class="photo-upload-area" id="banner-img-upload-area" style="position:relative">
+          <input type="file" id="banner-img-input" accept="image/*" onchange="previewBannerImage(this)"
+            style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+          <div id="banner-img-placeholder">
+            <div style="font-size:2.5rem;margin-bottom:.4rem">🖼️</div>
+            <p style="font-size:.85rem;color:#7A6B6B">Click to upload banner image</p>
+            <p style="font-size:.75rem;color:#C4A882;margin-top:.25rem">Recommended: 1280×420px or wider</p>
+          </div>
+        </div>
+        <!-- New image preview -->
+        <div id="banner-img-preview-wrap" style="display:none;margin-top:.75rem;position:relative;border-radius:12px;overflow:hidden">
+          <img id="banner-img-preview" src="" alt="preview"
+            style="width:100%;height:180px;object-fit:cover;display:block;border-radius:12px">
+          <button type="button" onclick="removeBannerNewImage()"
+            style="position:absolute;top:8px;right:8px;background:#C8506E;color:#fff;border:none;
+              border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.85rem;
+              display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+        </div>
+        <!-- Existing image (when editing) -->
+        <div id="banner-existing-img-wrap" style="display:none;margin-top:.5rem">
+          <p style="font-size:.75rem;color:#7A6B6B;margin-bottom:.4rem">Current image:</p>
+          <div style="position:relative;display:inline-block;border-radius:12px;overflow:hidden">
+            <img id="banner-existing-img-el" src="" alt="current banner"
+              style="height:130px;max-width:100%;object-fit:cover;border-radius:12px;display:block">
+            <button type="button" onclick="removeBannerExistingImage()"
+              style="position:absolute;top:6px;right:6px;background:#C8506E;color:#fff;border:none;
+                border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.72rem;
+                display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Title *</label>
+          <input class="form-control" type="text" id="b-title" placeholder="e.g. New Summer Collection">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Subtitle <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="text" id="b-subtitle"
+            placeholder="e.g. Discover our latest beauty arrivals">
+        </div>
+        <div class="form-group">
+          <label>Button Text <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="text" id="b-btn-text" placeholder="e.g. Shop Now">
+        </div>
+        <div class="form-group">
+          <label>Button Link <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="text" id="b-btn-link" placeholder="e.g. ../pages/shop.html">
+        </div>
+        <div class="form-group">
+          <label>Display Order <span style="font-size:.72rem;color:#7A6B6B">(lower = first)</span></label>
+          <input class="form-control" type="number" id="b-order" placeholder="0" min="0" value="0">
+        </div>
+        <div class="form-group" style="justify-content:flex-end">
+          <label style="height:20px">&nbsp;</label>
+          <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0">
+            <input type="checkbox" id="b-active" checked style="width:16px;height:16px;cursor:pointer">
+            <label for="b-active" style="cursor:pointer;font-size:.88rem;font-weight:500">Active (visible on homepage)</label>
+          </div>
+        </div>
+      </div>
+
+      <p class="form-error" id="banner-form-error"></p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem">
+        <button class="btn-tbl btn-view" style="flex:1;padding:.8rem;font-size:.9rem"
+          id="save-banner-btn" onclick="saveBanner()">Save Banner</button>
+        <button class="btn-tbl btn-edit" style="padding:.8rem 1.2rem"
+          onclick="closeBannerModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BANNER PREVIEW MODAL -->
+<div class="modal-overlay hidden" id="banner-preview-modal">
+  <div class="modal-box" style="max-width:820px;padding:0;overflow:hidden;border-radius:20px">
+    <div id="banner-preview-content" style="min-height:280px;border-radius:20px 20px 0 0;overflow:hidden"></div>
+    <div style="padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:#fff;border-top:1px solid #F4EEE8">
+      <span style="font-size:.8rem;color:#7A6B6B">This is a preview of how the banner will appear on the homepage.</span>
+      <button class="btn-tbl btn-edit" onclick="closeBannerPreview()">Close Preview</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOMEPAGE CATEGORY MODAL -->
+<div class="modal-overlay hidden" id="home-cat-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeHomeCatModal()">✕</button>
+    <h2 id="home-cat-modal-title">Add Category Card</h2>
+    <div style="margin-top:1.2rem">
+      <!-- Image Upload -->
+      <div class="form-group">
+        <label>Category Image <span style="font-size:.72rem;color:#7A6B6B">(max 5MB · jpg, png, webp)</span></label>
+        <div class="photo-upload-area" id="hc-img-upload-area" style="position:relative">
+          <input type="file" id="hc-img-input" accept="image/*" onchange="previewHomeCatImage(this)"
+            style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
+          <div id="hc-img-placeholder">
+            <div style="font-size:2.5rem;margin-bottom:.4rem">🖼️</div>
+            <p style="font-size:.85rem;color:#7A6B6B">Click to upload category image</p>
+            <p style="font-size:.75rem;color:#C4A882;margin-top:.25rem">Recommended: 800×1000px (portrait 4:5)</p>
+          </div>
+        </div>
+        <div id="hc-img-preview-wrap" style="display:none;margin-top:.75rem;position:relative;border-radius:12px;overflow:hidden">
+          <img id="hc-img-preview" src="" alt="preview"
+            style="width:100%;height:200px;object-fit:cover;display:block;border-radius:12px">
+          <button type="button" onclick="removeHomeCatNewImage()"
+            style="position:absolute;top:8px;right:8px;background:#C8506E;color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+        </div>
+        <div id="hc-existing-img-wrap" style="display:none;margin-top:.5rem">
+          <p style="font-size:.75rem;color:#7A6B6B;margin-bottom:.4rem">Current image:</p>
+          <div style="position:relative;display:inline-block;border-radius:12px;overflow:hidden">
+            <img id="hc-existing-img-el" src="" alt="current"
+              style="height:150px;max-width:100%;object-fit:cover;border-radius:12px;display:block">
+            <button type="button" onclick="removeHomeCatExistingImage()"
+              style="position:absolute;top:6px;right:6px;background:#C8506E;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Title *</label>
+          <input class="form-control" type="text" id="hc-title" placeholder="e.g. Lips">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Subtitle <span style="font-size:.72rem;color:#7A6B6B">(optional)</span></label>
+          <input class="form-control" type="text" id="hc-subtitle" placeholder="e.g. Lipsticks, Glosses & Liners">
+        </div>
+        <div class="form-group">
+          <label>Connected Shop Category</label>
+          <select class="form-control" id="hc-link">
+            <option value="">— None (links to all products) —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Display Order <span style="font-size:.72rem;color:#7A6B6B">(lower = first)</span></label>
+          <input class="form-control" type="number" id="hc-order" placeholder="0" min="0" value="0">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <div style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0">
+            <input type="checkbox" id="hc-active" checked style="width:16px;height:16px;cursor:pointer">
+            <label for="hc-active" style="cursor:pointer;font-size:.88rem;font-weight:500">Active (visible on homepage)</label>
+          </div>
+        </div>
+      </div>
+
+      <p class="form-error" id="home-cat-form-error"></p>
+      <div style="display:flex;gap:.75rem;margin-top:1rem">
+        <button class="btn-tbl btn-view" style="flex:1;padding:.8rem;font-size:.9rem"
+          id="save-home-cat-btn" onclick="saveHomeCat()">Save Category Card</button>
+        <button class="btn-tbl btn-edit" style="padding:.8rem 1.2rem" onclick="closeHomeCatModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURE PRODUCT PICKER MODAL -->
+<div class="modal-overlay hidden" id="feature-picker-modal">
+  <div class="modal-box" style="max-width:620px">
+    <button class="modal-close-btn" onclick="closeFeaturePicker()">✕</button>
+    <h2 id="feature-picker-title">Add Products</h2>
+    <div style="margin-top:1rem">
+      <input class="form-control" type="text" id="picker-search" placeholder="Search products by name, brand or SKU…"
+        oninput="renderPickerList()" style="margin-bottom:.75rem">
+      <div id="picker-list" style="max-height:52vh;overflow-y:auto;border:1px solid #F4EEE8;border-radius:12px"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:1rem">
+      <button class="btn-tbl btn-edit" style="padding:.7rem 1.4rem" onclick="closeFeaturePicker()">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/api.js"></script>
+<script>
+// ── STATE
+let allProducts  = [];
+let allOrders    = [];
+let allUsers     = [];
+let allCategories = [];
+let allCoupons   = [];
+let allBanners   = [];
+let editingProductId  = null;
+let editingBannerId   = null;
+let newBannerFile     = null;
+let bannerImageRemoved = false;
+let restockProductId = null;
+let editingCatId     = null;
+let editingCouponId  = null;
+let newPhotos = [];
+let colorRows = [];
+// colorRows shape: [{ name, hex, images: [...existingUrls], newFiles: [{file, url}, ...] }]
+
+// ── Homepage management state
+let allHomeCats        = [];
+let editingHomeCatId   = null;
+let newHomeCatFile     = null;
+let homeCatImageRemoved = false;
+let shopCategoriesCache = null;                       // [{name, slug}] for the link select
+const featureState = {                                // per-section curated picks + max
+  'bestsellers':  { items: [], max: 8 },
+  'new-arrivals': { items: [], max: 8 }
+};
+let pickerSection      = null;                         // which section the picker is adding to
+let pickerProducts     = [];                           // all products available to pick
+
+// ── INIT
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('dd_token');
+  const user  = JSON.parse(localStorage.getItem('dd_user') || 'null');
+
+  if (!token || user?.role !== 'admin') {
+    document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+    document.getElementById('access-denied').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('sidebar-user-name').textContent  = user.name  || 'Admin';
+  document.getElementById('sidebar-user-email').textContent = user.email || '';
+
+  await loadDashboard();
+  await loadCategoriesForSelect();
+  document.getElementById('product-form').addEventListener('submit', saveProduct);
+});
+
+// ── SIDEBAR TOGGLE (mobile)
+function toggleAdminSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen  = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── PANEL SWITCH
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n =>
+    n.classList.toggle('active', n.dataset.panel === name));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  // Auto-close sidebar on mobile after selecting a panel
+  if (window.innerWidth <= 1024) closeSidebar();
+  const titles = {
+    dashboard:'Dashboard', products:'Products', categories:'Categories',
+    orders:'Orders', payments:'Manual Payments', customers:'Customers',
+    inventory:'Inventory Alerts', coupons:'Coupons',
+    'hero-banners':'Hero Banners', 'home-categories':'Homepage Categories',
+    bestsellers:'Best Sellers', 'new-arrivals':'New Arrivals', settings:'Settings'
+  };
+  document.getElementById('topbar-title').textContent = titles[name] || '';
+
+  if (name === 'products')        loadProductsTable();
+  if (name === 'categories')      loadCategoriesTable();
+  if (name === 'orders')          loadOrdersTable();
+  if (name === 'payments')        loadPaymentsTable();
+  if (name === 'customers')       loadCustomersTable();
+  if (name === 'inventory')       loadInventoryAlerts();
+  if (name === 'coupons')         loadCouponsTable();
+  if (name === 'hero-banners')    loadHeroBannersTable();
+  if (name === 'home-categories') loadHomeCategoriesTable();
+  if (name === 'bestsellers')     loadFeatureSection('bestsellers');
+  if (name === 'new-arrivals')    loadFeatureSection('new-arrivals');
+  if (name === 'settings')        loadSettingsPanel();
+}
+
+// ── DASHBOARD
+async function loadDashboard() {
+  try {
+    const d = await API.getStats();
+    const { stats, recentOrders, lowStock } = d;
+
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="stat-icon rose">📦</div>
+        <div><div class="stat-num">${stats.totalProducts}</div><div class="stat-label">Total Products</div></div></div>
+      <div class="stat-card"><div class="stat-icon gold">🛍</div>
+        <div><div class="stat-num">${stats.totalOrders}</div><div class="stat-label">Total Orders</div></div></div>
+      <div class="stat-card"><div class="stat-icon green">👥</div>
+        <div><div class="stat-num">${stats.totalUsers}</div><div class="stat-label">Customers</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">💰</div>
+        <div><div class="stat-num">${Number(stats.totalSales).toFixed(2)} EGP</div><div class="stat-label">Total Sales</div></div></div>`;
+
+    // Show pending verification badge in nav
+    const badge = document.getElementById('nav-pending-badge');
+    if (badge) {
+      if (stats.pendingVerification > 0) {
+        badge.textContent    = stats.pendingVerification;
+        badge.style.display  = 'inline-block';
+      } else {
+        badge.style.display  = 'none';
+      }
+    }
+
+    document.getElementById('recent-orders-list').innerHTML = recentOrders.length
+      ? recentOrders.map(o => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.2rem;border-bottom:1px solid #F4EEE8">
+            <div>
+              <div style="font-size:.85rem;font-weight:600">${o.orderNumber}</div>
+              <div style="font-size:.75rem;color:#7A6B6B">${esc(o.shippingAddress?.fullName || o.guestEmail)}</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:.85rem;font-weight:700">${o.total.toFixed(2)} EGP</div>
+              <span class="status-badge status-${o.orderStatus}">${o.orderStatus}</span>
+            </div>
+          </div>`).join('')
+      : '<p style="padding:1.5rem;text-align:center;color:#7A6B6B">No orders yet</p>';
+
+    document.getElementById('low-stock-list').innerHTML = lowStock.length
+      ? lowStock.map(p => `
+          <div class="alert-card ${p.stock === 0 ? 'out' : ''}">
+            <div class="alert-info">
+              <span style="font-size:1.3rem">${p.emoji || '✨'}</span>
+              <div>
+                <div style="font-size:.85rem;font-weight:500">${p.name}</div>
+                <div style="font-size:.75rem;color:#7A6B6B">${p.sku || ''}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="${p.stock===0?'stock-out':'stock-low'}" style="font-size:.9rem">
+                ${p.stock===0?'OUT':p.stock+' left'}
+              </div>
+              <button class="btn-tbl btn-restock" style="margin-top:.3rem"
+                onclick="openRestockModal('${p._id}','${p.name}')">Restock</button>
+            </div>
+          </div>`).join('')
+      : '<p style="text-align:center;color:#7A6B6B;padding:1rem">✅ All products stocked</p>';
+
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── CATEGORIES TABLE
+async function loadCategoriesTable() {
+  document.getElementById('categories-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getCategoriesAdmin();
+    allCategories = d.categories;
+    document.getElementById('cat-count').textContent = `(${d.categories.length})`;
+    if (!d.categories.length) {
+      document.getElementById('categories-wrap').innerHTML =
+        '<p style="text-align:center;color:#7A6B6B;padding:2rem">No categories yet. Add one!</p>';
+      return;
+    }
+    document.getElementById('categories-wrap').innerHTML = `
+      <div class="category-grid-admin">
+        ${d.categories.map(c => `
+          <div class="cat-admin-card">
+            <div class="cat-admin-info">
+              <span class="cat-admin-emoji">${c.emoji || '✨'}</span>
+              <div>
+                <div style="font-weight:600">${c.name}</div>
+                <div style="font-size:.72rem;color:#7A6B6B">/${c.slug}</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:.35rem">
+              <button class="btn-tbl btn-edit" onclick="editCategory('${c._id}')">✏️</button>
+              <button class="btn-tbl btn-del" onclick="deleteCategory('${c._id}','${c.name}')">🗑</button>
+            </div>
+          </div>`).join('')}
+      </div>`;
+  } catch (e) {
+    document.getElementById('categories-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function openCategoryModal(cat = null) {
+  editingCatId = null;
+  document.getElementById('category-modal').classList.remove('hidden');
+  document.getElementById('cat-modal-title').textContent = cat ? 'Edit Category' : 'Add New Category';
+  document.getElementById('cat-error').textContent = '';
+  document.getElementById('cat-name').value  = cat?.name  || '';
+  document.getElementById('cat-emoji').value = cat?.emoji || '';
+  document.getElementById('cat-order').value = cat?.sortOrder ?? 0;
+  if (cat) editingCatId = cat._id;
+}
+
+function closeCategoryModal() { document.getElementById('category-modal').classList.add('hidden'); }
+
+async function saveCategory() {
+  const errEl = document.getElementById('cat-error');
+  errEl.textContent = '';
+  const name  = document.getElementById('cat-name').value.trim();
+  const emoji = document.getElementById('cat-emoji').value.trim();
+  const order = document.getElementById('cat-order').value;
+  if (!name) return errEl.textContent = 'Category name is required';
+
+  try {
+    if (editingCatId) await API.updateCategory(editingCatId, { name, emoji, sortOrder: order });
+    else              await API.createCategory({ name, emoji, sortOrder: order });
+    showToast(editingCatId ? 'Category updated!' : 'Category created!', 'success');
+    closeCategoryModal();
+    await loadCategoriesTable();
+    await loadCategoriesForSelect();
+  } catch (e) { errEl.textContent = e.message; }
+}
+
+function editCategory(id) {
+  const c = allCategories.find(x => String(x._id) === id);
+  if (c) openCategoryModal(c);
+}
+
+async function deleteCategory(id, name) {
+  if (!confirm(`Delete category "${name}"? Products in this category will remain.`)) return;
+  try {
+    await API.deleteCategory(id);
+    showToast(`Category "${name}" deleted`, 'info');
+    await loadCategoriesTable();
+    await loadCategoriesForSelect();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// Load categories into product form select
+async function loadCategoriesForSelect() {
+  try {
+    const d    = await API.getCategoriesAdmin();
+    allCategories = d.categories;
+    const sel  = document.getElementById('p-category');
+    const curr = sel?.value;
+    if (sel) {
+      sel.innerHTML = `<option value="">Select category…</option>` +
+        d.categories.map(c => `<option value="${c.slug}">${c.emoji || ''} ${c.name}</option>`).join('');
+      if (curr) sel.value = curr;
+    }
+  } catch {}
+}
+
+// ── PRODUCTS TABLE
+async function loadProductsTable() {
+  document.getElementById('products-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getAllAdmin();
+    allProducts = d.products;
+    document.getElementById('prod-count').textContent = `(${d.count})`;
+    // Apply any active search
+    const q = document.getElementById('product-search')?.value || '';
+    renderProductsTable(q ? allProducts.filter(p => matchesProductSearch(p, q)) : allProducts);
+  } catch (e) {
+    document.getElementById('products-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function matchesProductSearch(p, q) {
+  const lq = q.toLowerCase();
+  return (
+    p.name?.toLowerCase().includes(lq) ||
+    p.category?.toLowerCase().includes(lq) ||
+    p.sku?.toLowerCase().includes(lq) ||
+    p.brand?.toLowerCase().includes(lq)
+  );
+}
+
+function filterProducts(q) {
+  const filtered = q
+    ? allProducts.filter(p => matchesProductSearch(p, q))
+    : allProducts;
+  renderProductsTable(filtered);
+  document.getElementById('prod-count').textContent = `(${filtered.length})`;
+}
+
+function renderProductsTable(products) {
+  if (!products.length) {
+    document.getElementById('products-table-wrap').innerHTML =
+      '<p style="text-align:center;color:#7A6B6B;padding:2rem">No products match your search.</p>';
+    return;
+  }
+  document.getElementById('products-table-wrap').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Photo</th><th>Name</th><th>Category</th>
+          <th>Price</th><th>Stock</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${products.map(p => {
+          const img = p.colors?.[0]?.images?.[0];
+          const stockCls = p.stock===0?'stock-out':p.stock<=p.lowStockThreshold?'stock-low':'stock-ok';
+          return `<tr>
+            <td><div class="prod-thumb">
+              ${img ? `<img src="${img}" alt="${p.name}">` : (p.emoji||'✨')}
+            </div></td>
+            <td><strong>${p.name}</strong>
+              <div style="font-size:.72rem;color:#7A6B6B">${p.sku||''}</div></td>
+            <td><span class="status-badge" style="background:#F4D6DF;color:#8B2E47">${p.category}</span></td>
+            <td>
+              ${p.oldPrice?`<span style="text-decoration:line-through;color:#7A6B6B;font-size:.78rem">${Number(p.oldPrice).toFixed(2)} EGP</span> `:''}
+              <strong>${Number(p.price).toFixed(2)} EGP</strong>
+            </td>
+            <td><span class="${stockCls}">${p.stock===0?'Out':p.stock}</span></td>
+            <td><span class="status-badge ${p.active?'status-Delivered':'status-Cancelled'}">
+              ${p.active?'Active':'Inactive'}
+            </span></td>
+            <td><div class="action-btns">
+              <button class="btn-tbl btn-edit"   onclick="editProduct('${p._id}')">✏️ Edit</button>
+              <button class="btn-tbl btn-restock" onclick="openRestockModal('${p._id}','${p.name}')">📦 Stock</button>
+              <button class="btn-tbl btn-del"     onclick="deleteProduct('${p._id}','${p.name}')">🗑</button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── ORDERS TABLE
+async function loadOrdersTable() {
+  document.getElementById('orders-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.allOrders();
+    allOrders = d.orders;
+    document.getElementById('orders-count').textContent = `(${d.count})`;
+    applyOrderFilters();
+  } catch (e) {
+    document.getElementById('orders-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function applyOrderFilters() {
+  const status   = document.getElementById('filter-status')?.value   || '';
+  const city     = (document.getElementById('filter-city')?.value    || '').toLowerCase().trim();
+  const dateFrom = document.getElementById('filter-date-from')?.value || '';
+  const dateTo   = document.getElementById('filter-date-to')?.value   || '';
+  const sort     = document.getElementById('filter-sort')?.value      || 'newest';
+
+  let filtered = [...allOrders];
+
+  if (status) {
+    filtered = filtered.filter(o => o.orderStatus === status);
+  }
+  if (city) {
+    filtered = filtered.filter(o =>
+      o.shippingAddress?.city?.toLowerCase().includes(city)
+    );
+  }
+  if (dateFrom) {
+    const from = new Date(dateFrom);
+    filtered = filtered.filter(o => new Date(o.createdAt) >= from);
+  }
+  if (dateTo) {
+    const to = new Date(dateTo);
+    to.setHours(23, 59, 59, 999);
+    filtered = filtered.filter(o => new Date(o.createdAt) <= to);
+  }
+
+  filtered.sort((a, b) => sort === 'oldest'
+    ? new Date(a.createdAt) - new Date(b.createdAt)
+    : new Date(b.createdAt) - new Date(a.createdAt)
+  );
+
+  document.getElementById('orders-count').textContent = `(${filtered.length})`;
+  renderOrdersTable(filtered);
+}
+
+function clearOrderFilters() {
+  document.getElementById('filter-status').value    = '';
+  document.getElementById('filter-city').value      = '';
+  document.getElementById('filter-date-from').value = '';
+  document.getElementById('filter-date-to').value   = '';
+  document.getElementById('filter-sort').value      = 'newest';
+  applyOrderFilters();
+}
+
+// Helper: human-readable payment status label
+function formatPayStatus(s) {
+  const map = {
+    'Pending': 'Pending', 'Paid': 'Paid', 'Refunded': 'Refunded',
+    'PendingVerification': 'Pending Verification',
+    'Verified': 'Verified', 'Rejected': 'Rejected'
+  };
+  return map[s] || s;
+}
+
+// Helper: CSS class for payment status badge
+function payStatusClass(s) {
+  const map = {
+    'Pending': 'status-Pending', 'Paid': 'status-Delivered', 'Refunded': 'status-Cancelled',
+    'PendingVerification': 'status-PendingVerification',
+    'Verified': 'status-Verified', 'Rejected': 'status-Rejected'
+  };
+  return map[s] || 'status-Pending';
+}
+
+function renderOrdersTable(orders) {
+  if (!orders.length) {
+    document.getElementById('orders-table-wrap').innerHTML =
+      '<p style="text-align:center;color:#7A6B6B;padding:2rem">No orders match your filters.</p>';
+    return;
+  }
+  document.getElementById('orders-table-wrap').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th><th>Customer</th><th>Phone</th>
+          <th>City</th><th>Total</th><th>Pay Method</th><th>Pay Status</th><th>Order Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orders.map(o => {
+          const methodLabel = o.paymentMethod === 'VodafoneCash' ? 'Vodafone Cash'
+                            : o.paymentMethod === 'InstaPay'     ? 'InstaPay'
+                            : 'COD';
+          return `<tr>
+            <td>
+              <strong>${o.orderNumber}</strong>
+              <div style="font-size:.72rem;color:#7A6B6B">
+                ${new Date(o.createdAt).toLocaleDateString('en-GB', {
+                  day:'2-digit', month:'short', year:'numeric'
+                })}
+              </div>
+            </td>
+            <td>${esc(o.shippingAddress?.fullName || o.guestEmail || 'Guest')}</td>
+            <td style="font-size:.82rem">${esc(o.shippingAddress?.phone || '—')}</td>
+            <td style="font-size:.82rem">${esc(o.shippingAddress?.city  || '—')}</td>
+            <td><strong>${o.total.toFixed(2)} EGP</strong></td>
+            <td><span style="font-size:.78rem">${methodLabel}</span></td>
+            <td>
+              <span class="status-badge ${payStatusClass(o.paymentStatus)}">
+                ${formatPayStatus(o.paymentStatus)}
+              </span>
+            </td>
+            <td>
+              <select class="status-select" onchange="updateOrderStatus('${o._id}', this.value)">
+                ${['Pending','Processing','Shipped','Delivered','Cancelled']
+                  .map(s=>`<option value="${s}" ${o.orderStatus===s?'selected':''}>${s}</option>`)
+                  .join('')}
+              </select>
+            </td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-tbl btn-view" onclick="openOrderModal('${o._id}')">👁 View</button>
+                ${['InstaPay','VodafoneCash'].includes(o.paymentMethod)
+                  ? `<button class="btn-tbl btn-restock" onclick="openVerifyModal('${o._id}')">✓ Verify</button>`
+                  : ''}
+              </div>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── CUSTOMERS TABLE
+async function loadCustomersTable() {
+  document.getElementById('customers-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getUsers();
+    allUsers = d.users;
+    document.getElementById('users-count').textContent = `(${d.count})`;
+    if (!d.users.length) {
+      document.getElementById('customers-table-wrap').innerHTML =
+        '<p style="text-align:center;color:#7A6B6B;padding:2rem">No customers yet</p>';
+      return;
+    }
+    document.getElementById('customers-table-wrap').innerHTML = `
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Orders</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+          ${d.users.map(u => {
+            const phone = u.phone || (u.addresses || []).find(a => a.isDefault)?.phone || (u.addresses || [])[0]?.phone || '';
+            return `<tr>
+            <td><strong>${esc(u.name)}</strong></td>
+            <td>${esc(u.email)}</td>
+            <td style="font-size:.82rem">${phone ? esc(phone) : '—'}</td>
+            <td>
+              <span title="Total orders placed" style="display:inline-block;min-width:1.6rem;text-align:center;
+                padding:.15rem .5rem;border-radius:var(--r-full,999px);font-weight:600;font-size:.8rem;
+                background:${(u.orderCount || 0) > 0 ? 'var(--rose-light,#F7E1E8)' : '#F0ECEC'};
+                color:${(u.orderCount || 0) > 0 ? 'var(--rose-dark,#A33A57)' : '#7A6B6B'}">
+                ${u.orderCount || 0}
+              </span>
+            </td>
+            <td style="font-size:.78rem;color:#7A6B6B">
+              ${new Date(u.createdAt).toLocaleDateString()}
+            </td>
+            <td>
+              <button class="btn-tbl btn-del" onclick="deleteUser('${u._id}','${u.name}')">🗑 Delete</button>
+            </td>
+          </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    document.getElementById('customers-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+// ── INVENTORY ALERTS
+async function loadInventoryAlerts() {
+  document.getElementById('inventory-alerts-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d        = await API.getAllAdmin();
+    const outOfStock = d.products.filter(p => p.active && p.stock === 0);
+    const lowStock   = d.products.filter(p => p.active && p.stock > 0 && p.stock <= p.lowStockThreshold);
+    const ok         = d.products.filter(p => p.active && p.stock > p.lowStockThreshold);
+
+    const alertRow = (p, type='low') => `
+      <div class="alert-card ${type==='out'?'out':''}">
+        <div class="alert-info">
+          <span style="font-size:1.4rem">${p.emoji||'✨'}</span>
+          <div>
+            <div style="font-size:.88rem;font-weight:500">${p.name}</div>
+            <div style="font-size:.75rem;color:#7A6B6B">SKU: ${p.sku||'N/A'} · Alert at: ${p.lowStockThreshold}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <span class="${type==='out'?'stock-out':type==='ok'?'stock-ok':'stock-low'}"
+            style="font-size:1rem;font-weight:700">${p.stock}</span>
+          <button class="btn-tbl btn-restock"
+            onclick="openRestockModal('${p._id}','${p.name}')">+ Restock</button>
+        </div>
+      </div>`;
+
+    document.getElementById('inventory-alerts-wrap').innerHTML = `
+      ${outOfStock.length ? `<div class="table-box" style="margin-bottom:1.5rem">
+        <div class="table-header"><h3 style="color:#C8506E">🔴 Out of Stock (${outOfStock.length})</h3></div>
+        <div style="padding:1rem">${outOfStock.map(p=>alertRow(p,'out')).join('')}</div>
+      </div>` : ''}
+      ${lowStock.length ? `<div class="table-box" style="margin-bottom:1.5rem">
+        <div class="table-header"><h3 style="color:#C9A84C">🟡 Low Stock (${lowStock.length})</h3></div>
+        <div style="padding:1rem">${lowStock.map(p=>alertRow(p,'low')).join('')}</div>
+      </div>` : ''}
+      <div class="table-box">
+        <div class="table-header"><h3 style="color:#5A9E6A">🟢 Well Stocked (${ok.length})</h3></div>
+        <div style="padding:1rem">${ok.length
+          ? ok.map(p=>alertRow(p,'ok')).join('')
+          : '<p style="color:#7A6B6B;text-align:center">No products here</p>'}
+        </div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('inventory-alerts-wrap').innerHTML =
+      `<p style="color:#C8506E;padding:1.5rem">${e.message}</p>`;
+  }
+}
+
+// ── ORDER MODAL
+async function openOrderModal(orderId) {
+  document.getElementById('order-modal').classList.remove('hidden');
+  document.getElementById('order-detail-body').innerHTML = '<div class="spinner"></div>';
+
+  // Try cache first; fall back to admin API fetch (works for cancelled / filtered-out orders)
+  let order = allOrders.find(o => String(o._id) === orderId);
+  if (!order) {
+    try {
+      const d = await API.getAdminOrder(orderId);
+      order = d.order;
+    } catch (e) {
+      document.getElementById('order-detail-body').innerHTML =
+        `<p style="color:#C8506E;padding:1.5rem;text-align:center">
+          Could not load order details: ${e.message}
+        </p>`;
+      return;
+    }
+  }
+
+  try {
+  document.getElementById('order-detail-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+      <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem">
+        <h4 style="font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.75rem">📍 Shipping</h4>
+        ${[
+          ['Name',    order.shippingAddress.fullName],
+          ['Phone',   order.shippingAddress.phone],
+          ['Email',   order.shippingAddress.email],
+          ['City',    order.shippingAddress.city + (order.shippingAddress.area?', '+order.shippingAddress.area:'')],
+          ['Address', order.shippingAddress.address],
+        ].map(([l,v]) => `
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+            <span style="color:#7A6B6B">${l}</span><span>${esc(v||'—')}</span>
+          </div>`).join('')}
+        ${order.shippingAddress.notes
+          ? `<div style="margin-top:.5rem;font-size:.82rem;background:#F0E3B8;padding:.5rem .75rem;border-radius:8px">
+              📝 ${esc(order.shippingAddress.notes)}</div>`
+          : ''}
+      </div>
+      <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem">
+        <h4 style="font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.75rem">💰 Order Info</h4>
+        ${[
+          ['Order #',     order.orderNumber],
+          ['Date',        new Date(order.createdAt).toLocaleString()],
+          ['Pay Method',  order.paymentMethod === 'VodafoneCash' ? 'Vodafone Cash' : order.paymentMethod],
+          ['Pay Status',  formatPayStatus(order.paymentStatus)],
+          ['Subtotal',    order.subtotal.toFixed(2)+' EGP'],
+          ['Shipping',    order.shippingCost===0?'FREE':order.shippingCost.toFixed(2)+' EGP'],
+        ].map(([l,v]) => `
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+            <span style="color:#7A6B6B">${l}</span><span><strong>${esc(v)}</strong></span>
+          </div>`).join('')}
+        ${order.verificationNotes ? `
+          <div style="margin-top:.5rem;font-size:.82rem;background:#F0E3B8;padding:.5rem .75rem;border-radius:8px">
+            📝 ${order.verificationNotes}
+          </div>` : ''}
+        ${order.discount > 0 ? `
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+            <span style="color:#7A6B6B">Discount
+              ${order.discountCode ? `<span style="background:#D4E8D4;color:#2E6B3A;border-radius:4px;
+                padding:.1rem .4rem;font-size:.7rem;font-family:monospace;margin-left:.35rem;font-weight:600">
+                ${order.discountCode}</span>` : ''}
+            </span>
+            <span style="color:#2E6B3A;font-weight:600">-${order.discount.toFixed(2)} EGP</span>
+          </div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem;
+          padding-top:.5rem;border-top:1px solid #E8D5C4;margin-top:.25rem">
+          <span style="color:#7A6B6B">Total</span>
+          <span><strong>${order.total.toFixed(2)} EGP</strong></span>
+        </div>
+      </div>
+    </div>
+    <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem;margin-top:1rem">
+      <h4 style="font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.75rem">🛍 Items</h4>
+      ${order.items.map(item => `
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem;background:#fff;border-radius:8px;margin-bottom:.5rem">
+          <div style="width:36px;height:36px;border-radius:6px;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:#FAF6F1">
+            ${item.productPhoto
+              ? `<img src="${item.productPhoto}" alt="${item.productName}" style="width:100%;height:100%;object-fit:cover">`
+              : item.colorHex
+                ? `<span style="display:block;width:100%;height:100%;background:${item.colorHex}"></span>`
+                : (item.productEmoji||'✨')}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:.88rem;font-weight:500">${item.productName}
+              ${item.colorName?`<span style="color:#7A6B6B;font-size:.75rem"> (${item.colorName})</span>`:''}
+            </div>
+          </div>
+          <div style="font-size:.82rem;color:#7A6B6B">×${item.quantity}</div>
+          <div style="font-size:.9rem;font-weight:600;margin-left:.75rem">$${item.lineTotal.toFixed(2)}</div>
+        </div>`).join('')}
+    </div>
+    ${order.paymentProof ? `
+    <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem;margin-top:1rem">
+      <h4 style="font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.75rem">💳 Payment Proof</h4>
+      <div style="position:relative;border-radius:10px;overflow:hidden;cursor:pointer;max-height:220px"
+        onclick="openProofLightbox('${order.paymentProof}')" title="Click to view full size">
+        <img src="${order.paymentProof}" alt="Payment proof"
+          style="width:100%;max-height:220px;object-fit:cover;display:block">
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.38);
+          color:#fff;font-size:.72rem;padding:.3rem .6rem;text-align:center">
+          🔍 Click to view full size
+        </div>
+      </div>
+      ${['InstaPay','VodafoneCash'].includes(order.paymentMethod) ? `
+      <div style="margin-top:.65rem">
+        <button class="btn-tbl btn-restock" onclick="openVerifyModal('${order._id}');closeOrderModal()"
+          style="font-size:.82rem">✓ Open Verification Panel</button>
+      </div>` : ''}
+    </div>` : (order.paymentMethod !== 'COD' ? `
+    <div style="background:#FAF6F1;border:2px dashed #E8D5C4;border-radius:12px;padding:1.2rem;text-align:center;margin-top:1rem;color:#7A6B6B">
+      <div style="font-size:1.8rem;margin-bottom:.3rem">📷</div>
+      <p style="font-size:.82rem">No payment proof uploaded yet</p>
+    </div>` : '')}
+    <div style="margin-top:1rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap">
+      <label style="font-size:.82rem;font-weight:500">Update Status:</label>
+      <select class="status-select" id="modal-status-select">
+        ${['Pending','Processing','Shipped','Delivered','Cancelled']
+          .map(s=>`<option value="${s}" ${order.orderStatus===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <select class="status-select" id="modal-payment-select">
+        ${['Pending','Paid','Refunded','PendingVerification','Verified','Rejected']
+          .map(s=>`<option value="${s}" ${order.paymentStatus===s?'selected':''}>${formatPayStatus(s)}</option>`).join('')}
+      </select>
+      <button class="btn-tbl btn-view" onclick="updateOrderStatusFromModal('${order._id}')">Save</button>
+    </div>`;
+  } catch (e) {
+    document.getElementById('order-detail-body').innerHTML =
+      `<p style="color:#C8506E;padding:1.5rem;text-align:center">
+        Error rendering order details: ${e.message}
+      </p>`;
+  }
+}
+
+function closeOrderModal() { document.getElementById('order-modal').classList.add('hidden'); }
+
+async function updateOrderStatusFromModal(orderId) {
+  const orderStatus   = document.getElementById('modal-status-select').value;
+  const paymentStatus = document.getElementById('modal-payment-select').value;
+  await updateOrderStatus(orderId, orderStatus, paymentStatus);
+}
+
+async function updateOrderStatus(orderId, orderStatus, paymentStatus) {
+  try {
+    await API.updateStatus(orderId, { orderStatus, paymentStatus });
+    showToast(`Status updated: ${orderStatus}`, 'success');
+    await loadOrdersTable();
+    closeOrderModal();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── DELETE
+async function deleteUser(id, name) {
+  if (!confirm(`Delete customer "${name}"?`)) return;
+  try { await API.deleteUser(id); showToast(`${name} deleted`, 'info'); await loadCustomersTable(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm(`Deactivate "${name}"?`)) return;
+  try { await API.deleteProduct(id); showToast(`${name} deactivated`, 'info'); await loadProductsTable(); }
+  catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── RESTOCK
+function openRestockModal(id, name) {
+  restockProductId = id;
+  document.getElementById('restock-product-name').textContent = name;
+  document.getElementById('restock-qty').value = '';
+  document.getElementById('restock-modal').classList.remove('hidden');
+}
+function closeRestockModal() { document.getElementById('restock-modal').classList.add('hidden'); }
+async function submitRestock() {
+  const qty = parseInt(document.getElementById('restock-qty').value);
+  if (!qty || qty <= 0) return showToast('Enter a positive quantity', 'error');
+  try {
+    await API.restockProduct(restockProductId, qty);
+    showToast(`Stock updated +${qty}`, 'success');
+    closeRestockModal();
+    await loadProductsTable();
+    await loadDashboard();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── PRODUCT MODAL
+function openProductModal(product = null) {
+  editingProductId = null;
+  newPhotos = [];
+  colorRows = [];
+  document.getElementById('product-modal').classList.remove('hidden');
+  document.getElementById('modal-title').textContent = product ? 'Edit Product' : 'Add New Product';
+  document.getElementById('product-form').reset();
+  document.getElementById('photo-previews').innerHTML = '';
+  document.getElementById('product-form-error').textContent = '';
+  document.getElementById('photo-placeholder').style.display = 'block';
+  document.getElementById('existing-photos').style.display = 'none';
+  document.getElementById('colors-list').innerHTML = '';
+
+  if (product) {
+    editingProductId = product._id;
+    document.getElementById('p-name').value        = product.name        || '';
+    document.getElementById('p-brand').value       = product.brand       || 'DomDom';
+    document.getElementById('p-category').value    = product.category    || '';
+    document.getElementById('p-emoji').value       = product.emoji       || '';
+    document.getElementById('p-price').value       = product.price       || '';
+    document.getElementById('p-old-price').value   = product.oldPrice    || '';
+    document.getElementById('p-stock').value       = product.stock       || '';
+    document.getElementById('p-threshold').value   = product.lowStockThreshold || 10;
+    document.getElementById('p-sku').value         = product.sku         || '';
+    document.getElementById('p-badge').value       = product.badge       || '';
+    document.getElementById('p-description').value = product.description || '';
+    document.getElementById('p-details').value     = (product.details||[]).join('\n');
+
+    colorRows = (product.colors || []).map(c => ({
+      name:     c.name,
+      hex:      c.hex || '',
+      images:   [...(c.images || [])],
+      newFiles: []
+    }));
+    renderColorRows();
+  } else {
+    renderColorRows();
+  }
+}
+
+function editProduct(id) {
+  const p = allProducts.find(x => String(x._id) === id);
+  if (p) openProductModal(p);
+}
+function closeProductModal() {
+  colorRows.forEach(c => (c.newFiles || []).forEach(item => URL.revokeObjectURL(item.url)));
+  document.getElementById('product-modal').classList.add('hidden');
+}
+
+function previewPhotos(input) {
+  if (!input.files || !input.files.length) return;
+  newPhotos = Array.from(input.files);
+  document.getElementById('photo-placeholder').style.display = 'none';
+  const previewsEl = document.getElementById('photo-previews');
+  previewsEl.innerHTML = '';
+  newPhotos.forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'photo-preview-item';
+      div.innerHTML = `<img src="${e.target.result}" alt="preview">
+        <button type="button" class="photo-remove-btn" onclick="removeNewPhoto(${i})">✕</button>`;
+      previewsEl.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeNewPhoto(idx) {
+  newPhotos.splice(idx, 1);
+  const dt = new DataTransfer();
+  newPhotos.forEach(f => dt.items.add(f));
+  document.getElementById('photo-input').files = dt.files;
+  previewPhotos(document.getElementById('photo-input'));
+}
+
+function addColorRow(name = '', hex = '', images = []) {
+  colorRows.push({ name, hex, images: [...images], newFiles: [] });
+  renderColorRows();
+}
+
+function removeColorRow(idx) {
+  (colorRows[idx].newFiles || []).forEach(item => URL.revokeObjectURL(item.url));
+  colorRows.splice(idx, 1);
+  renderColorRows();
+}
+
+function addColorImages(idx, input) {
+  if (!input.files || !input.files.length) return;
+  Array.from(input.files).forEach(file => {
+    colorRows[idx].newFiles.push({ file, url: URL.createObjectURL(file) });
+  });
+  input.value = '';
+  renderColorRows();
+}
+
+function removeColorImage(colorIdx, imgIdx, isNew) {
+  if (isNew) {
+    URL.revokeObjectURL(colorRows[colorIdx].newFiles[imgIdx].url);
+    colorRows[colorIdx].newFiles.splice(imgIdx, 1);
+  } else {
+    colorRows[colorIdx].images.splice(imgIdx, 1);
+  }
+  renderColorRows();
+}
+
+function renderColorRows() {
+  document.getElementById('colors-list').innerHTML = colorRows.map((c, i) => {
+    const existingThumbs = (c.images || []).map((src, j) => `
+      <div class="color-thumb">
+        <img src="${src}" alt="">
+        <button type="button" class="color-thumb-remove" onclick="removeColorImage(${i},${j},false)" title="Remove image">✕</button>
+      </div>`).join('');
+
+    const newThumbs = (c.newFiles || []).map((item, j) => `
+      <div class="color-thumb">
+        <img src="${item.url}" alt="">
+        <button type="button" class="color-thumb-remove" onclick="removeColorImage(${i},${j},true)" title="Remove image">✕</button>
+      </div>`).join('');
+
+    const hasImages = (c.images.length + (c.newFiles || []).length) > 0;
+
+    return `
+      <div class="color-row">
+        <div class="color-row-controls">
+          <input class="form-control" type="text" placeholder="Color name (e.g. Classic Red)"
+            value="${c.name}" oninput="colorRows[${i}].name=this.value" style="min-width:0">
+          <input type="color"
+            style="width:44px;height:38px;border-radius:8px;border:1.5px solid #E8D5C4;cursor:pointer;padding:2px"
+            value="${c.hex || '#C8506E'}" oninput="colorRows[${i}].hex=this.value">
+          <label class="color-img-upload-btn" for="color_img_${i}" title="Upload images for this color">
+            📷 Images
+            <input type="file" id="color_img_${i}" multiple accept="image/*"
+              style="display:none" onchange="addColorImages(${i},this)">
+          </label>
+          <button type="button" class="btn-remove-color" onclick="removeColorRow(${i})" title="Remove color">✕</button>
+        </div>
+        ${hasImages ? `<div class="color-thumbs">${existingThumbs}${newThumbs}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+async function saveProduct(e) {
+  e.preventDefault();
+  const btn   = document.getElementById('save-product-btn');
+  const errEl = document.getElementById('product-form-error');
+  btn.disabled = true; btn.textContent = 'Saving…'; errEl.textContent = '';
+
+  const fd = new FormData();
+  fd.append('name',        document.getElementById('p-name').value);
+  fd.append('brand',       document.getElementById('p-brand').value || 'DomDom');
+  fd.append('category',    document.getElementById('p-category').value);
+  fd.append('emoji',       document.getElementById('p-emoji').value || '✨');
+  fd.append('price',       document.getElementById('p-price').value);
+  fd.append('oldPrice',    document.getElementById('p-old-price').value || '');
+  fd.append('stock',       document.getElementById('p-stock').value || '0');
+  fd.append('lowStockThreshold', document.getElementById('p-threshold').value || '10');
+  fd.append('sku',         document.getElementById('p-sku').value);
+  fd.append('badge',       document.getElementById('p-badge').value);
+  fd.append('description', document.getElementById('p-description').value);
+  fd.append('details',     JSON.stringify(
+    document.getElementById('p-details').value.split('\n').map(d=>d.trim()).filter(Boolean)
+  ));
+  // Serialize colors with their existing images; new files sent separately per-color
+  const colorsPayload = colorRows.map(c => ({ name: c.name, hex: c.hex, images: c.images || [] }));
+  fd.append('colors', JSON.stringify(colorsPayload));
+  // Per-color new uploads → field name color_N_photos
+  colorRows.forEach((c, i) => {
+    (c.newFiles || []).forEach(item => fd.append(`color_${i}_photos`, item.file));
+  });
+  // Legacy general photos (still go to colors[0] on backend for simple products)
+  newPhotos.forEach(file => fd.append('photos', file));
+
+  try {
+    if (editingProductId) await API.updateProduct(editingProductId, fd);
+    else                  await API.createProduct(fd);
+    showToast(editingProductId ? 'Product updated!' : 'Product added! 🌸', 'success');
+    closeProductModal();
+    await loadProductsTable();
+    await loadDashboard();
+  } catch (err) {
+    errEl.textContent = err.message || 'Save failed';
+    showToast(err.message, 'error');
+  } finally { btn.disabled = false; btn.textContent = 'Save Product'; }
+}
+
+// ── AUTH
+async function adminLogin() {
+  const email    = document.getElementById('al-email').value;
+  const password = document.getElementById('al-password').value;
+  const errEl    = document.getElementById('al-error');
+  errEl.textContent = '';
+  try {
+    const d = await API.login(email, password);
+    if (d.user.role !== 'admin') throw new Error('Not an admin account');
+    localStorage.setItem('dd_token', d.token);
+    localStorage.setItem('dd_user',  JSON.stringify(d.user));
+    window.location.reload();
+  } catch (e) { errEl.textContent = e.message; }
+}
+
+function adminLogout() {
+  localStorage.removeItem('dd_token');
+  localStorage.removeItem('dd_user');
+  window.location.href = '../index.html';
+}
+
+// ── COUPONS TABLE
+async function loadCouponsTable() {
+  document.getElementById('coupons-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getCouponsAdmin();
+    allCoupons = d.coupons;
+    document.getElementById('coupons-count').textContent = `(${d.coupons.length})`;
+
+    if (!d.coupons.length) {
+      document.getElementById('coupons-table-wrap').innerHTML =
+        '<p style="text-align:center;color:#7A6B6B;padding:2rem">No coupons yet. Create one!</p>';
+      return;
+    }
+
+    const now = new Date();
+    document.getElementById('coupons-table-wrap').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th><th>Type</th><th>Value</th>
+            <th>Used / Max</th><th>Valid Until</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${d.coupons.map(c => {
+            const expired    = c.validUntil && new Date(c.validUntil) < now;
+            const limitHit   = c.maxUses !== null && c.usedCount >= c.maxUses;
+            const usable     = c.active && !expired && !limitHit;
+            const statusText = !c.active ? 'Inactive' : expired ? 'Expired' : limitHit ? 'Limit Reached' : 'Active';
+            const statusCls  = usable ? 'status-Delivered' : 'status-Cancelled';
+            const maxLabel   = c.maxUses !== null ? String(c.maxUses) : '∞';
+            const validLabel = c.validUntil
+              ? new Date(c.validUntil).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+              : '—';
+            return `<tr>
+              <td><strong style="font-family:monospace;font-size:.9rem;letter-spacing:.05em">${c.code}</strong></td>
+              <td>${c.discountType === 'percentage' ? 'Percentage' : 'Fixed'}</td>
+              <td><strong>${c.discountType === 'percentage' ? c.discountValue + '%' : c.discountValue + ' EGP'}</strong></td>
+              <td>${c.usedCount} / ${maxLabel}</td>
+              <td style="font-size:.82rem">${validLabel}</td>
+              <td><span class="status-badge ${statusCls}">${statusText}</span></td>
+              <td><div class="action-btns">
+                <button class="btn-tbl btn-edit"   onclick="editCoupon('${c._id}')">✏️ Edit</button>
+                <button class="btn-tbl ${c.active ? 'btn-del' : 'btn-restock'}"
+                  onclick="toggleCoupon('${c._id}', ${c.active})">
+                  ${c.active ? '⏸ Disable' : '▶ Enable'}
+                </button>
+                <button class="btn-tbl btn-del" onclick="deleteCoupon('${c._id}','${c.code}')">🗑</button>
+              </div></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  } catch (e) {
+    document.getElementById('coupons-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function openCouponModal(coupon = null) {
+  editingCouponId = null;
+  document.getElementById('coupon-modal').classList.remove('hidden');
+  document.getElementById('coupon-modal-title').textContent = coupon ? 'Edit Coupon' : 'Add New Coupon';
+  document.getElementById('coupon-error').textContent       = '';
+  document.getElementById('c-code').value       = coupon?.code       || '';
+  document.getElementById('c-type').value       = coupon?.discountType || 'percentage';
+  document.getElementById('c-value').value      = coupon?.discountValue ?? '';
+  document.getElementById('c-max-uses').value   = coupon?.maxUses     ?? '';
+  document.getElementById('c-active').checked   = coupon ? coupon.active : true;
+
+  if (coupon?.validFrom) {
+    document.getElementById('c-valid-from').value = coupon.validFrom.substring(0, 10);
+  } else {
+    document.getElementById('c-valid-from').value = '';
+  }
+  if (coupon?.validUntil) {
+    document.getElementById('c-valid-until').value = coupon.validUntil.substring(0, 10);
+  } else {
+    document.getElementById('c-valid-until').value = '';
+  }
+
+  if (coupon) editingCouponId = coupon._id;
+}
+
+function closeCouponModal() { document.getElementById('coupon-modal').classList.add('hidden'); }
+
+function editCoupon(id) {
+  const c = allCoupons.find(x => String(x._id) === id);
+  if (c) openCouponModal(c);
+}
+
+async function toggleCoupon(id, currentActive) {
+  try {
+    await API.updateCoupon(id, { active: !currentActive });
+    showToast(currentActive ? 'Coupon disabled' : 'Coupon enabled', 'success');
+    await loadCouponsTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function saveCoupon() {
+  const errEl = document.getElementById('coupon-error');
+  errEl.textContent = '';
+
+  const code      = document.getElementById('c-code').value.trim().toUpperCase();
+  const type      = document.getElementById('c-type').value;
+  const value     = document.getElementById('c-value').value;
+  const maxUses   = document.getElementById('c-max-uses').value;
+  const validFrom = document.getElementById('c-valid-from').value;
+  const validUntil= document.getElementById('c-valid-until').value;
+  const active    = document.getElementById('c-active').checked;
+
+  if (!code)  return errEl.textContent = 'Coupon code is required';
+  if (!value) return errEl.textContent = 'Discount value is required';
+  if (+value < 0)                               return errEl.textContent = 'Discount value must be 0 or greater';
+  if (type === 'percentage' && +value > 100)    return errEl.textContent = 'Percentage cannot exceed 100%';
+
+  const payload = {
+    code, discountType: type, discountValue: +value,
+    maxUses:    maxUses    || null,
+    validFrom:  validFrom  || null,
+    validUntil: validUntil || null,
+    active
+  };
+
+  try {
+    if (editingCouponId) await API.updateCoupon(editingCouponId, payload);
+    else                 await API.createCoupon(payload);
+    showToast(editingCouponId ? 'Coupon updated!' : 'Coupon created!', 'success');
+    closeCouponModal();
+    await loadCouponsTable();
+  } catch (e) { errEl.textContent = e.message; }
+}
+
+async function deleteCoupon(id, code) {
+  if (!confirm(`Delete coupon "${code}"? This cannot be undone.`)) return;
+  try {
+    await API.deleteCoupon(id);
+    showToast(`Coupon "${code}" deleted`, 'info');
+    await loadCouponsTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── HERO BANNERS TABLE
+async function loadHeroBannersTable() {
+  document.getElementById('banners-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getAdminBanners();
+    allBanners = d.banners;
+    document.getElementById('banners-count').textContent = `(${d.banners.length})`;
+    renderBannersTable(allBanners);
+  } catch (e) {
+    document.getElementById('banners-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function renderBannersTable(banners) {
+  if (!banners.length) {
+    document.getElementById('banners-table-wrap').innerHTML =
+      '<p style="text-align:center;color:#7A6B6B;padding:2rem">No banners yet. Add your first hero banner! 🎨</p>';
+    return;
+  }
+
+  const rows = banners.map((b, i) => {
+    const imgEl = b.image
+      ? `<img src="${b.image}" alt="${b.title}" style="width:100%;height:100%;object-fit:cover">`
+      : `<span style="font-size:1.6rem">🖼️</span>`;
+
+    const btnBadge = b.buttonText
+      ? `<span style="background:#F4D6DF;color:#8B2E47;border-radius:4px;padding:.2rem .5rem;font-size:.78rem">${b.buttonText}</span>`
+      : `<span style="color:#C4A882">—</span>`;
+
+    const upDis = i === 0;
+    const dnDis = i === banners.length - 1;
+    const arrowBase = 'padding:.12rem .45rem;font-size:.62rem;background:#F4EEE8;color:#7A6B6B;line-height:1.2;border-radius:4px;border:none;';
+    const upBtn = `<button style="${arrowBase}cursor:${upDis?'not-allowed':'pointer'};opacity:${upDis?'.35':'1'}"
+      onclick="moveBanner('${b._id}','up')" ${upDis?'disabled':''}>▲</button>`;
+    const dnBtn = `<button style="${arrowBase}cursor:${dnDis?'not-allowed':'pointer'};opacity:${dnDis?'.35':'1'}"
+      onclick="moveBanner('${b._id}','down')" ${dnDis?'disabled':''}>▼</button>`;
+
+    const safeTitle = b.title.replace(/'/g, "\\'").replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    return `<tr>
+      <td><div style="width:88px;height:56px;border-radius:8px;overflow:hidden;
+        background:linear-gradient(135deg,#F4D6DF,#C8506E);display:flex;
+        align-items:center;justify-content:center;flex-shrink:0">${imgEl}</div></td>
+      <td>
+        <strong>${b.title}</strong>
+        ${b.subtitle ? `<div style="font-size:.75rem;color:#7A6B6B;margin-top:.1rem">${b.subtitle}</div>` : ''}
+      </td>
+      <td>${btnBadge}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:.35rem">
+          <span style="font-weight:600">${b.order}</span>
+          <div style="display:flex;flex-direction:column;gap:.1rem">${upBtn}${dnBtn}</div>
+        </div>
+      </td>
+      <td><span class="status-badge ${b.active?'status-Delivered':'status-Cancelled'}">${b.active?'Active':'Inactive'}</span></td>
+      <td><div class="action-btns">
+        <button class="btn-tbl btn-view"  onclick="openBannerPreview('${b._id}')">👁 Preview</button>
+        <button class="btn-tbl btn-edit"  onclick="editBanner('${b._id}')">✏️ Edit</button>
+        <button class="btn-tbl ${b.active?'btn-del':'btn-restock'}" onclick="toggleBannerItem('${b._id}')">
+          ${b.active?'⏸ Disable':'▶ Enable'}
+        </button>
+        <button class="btn-tbl btn-del"  onclick="deleteBannerItem('${b._id}','${safeTitle}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('banners-table-wrap').innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Image</th><th>Title / Subtitle</th><th>Button</th>
+        <th>Order</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── BANNER MODAL
+function openBannerModal(banner = null) {
+  editingBannerId  = null;
+  newBannerFile    = null;
+  bannerImageRemoved = false;
+
+  document.getElementById('banner-modal').classList.remove('hidden');
+  document.getElementById('banner-modal-title').textContent = banner ? 'Edit Banner' : 'Add New Banner';
+  document.getElementById('banner-form-error').textContent  = '';
+  document.getElementById('banner-img-input').value         = '';
+
+  // Reset image UI
+  document.getElementById('banner-img-placeholder').style.display    = 'block';
+  document.getElementById('banner-img-preview-wrap').style.display   = 'none';
+  document.getElementById('banner-existing-img-wrap').style.display  = 'none';
+  document.getElementById('banner-img-upload-area').style.pointerEvents = 'auto';
+  document.getElementById('banner-img-upload-area').style.opacity    = '1';
+
+  document.getElementById('b-title').value    = banner?.title      || '';
+  document.getElementById('b-subtitle').value = banner?.subtitle   || '';
+  document.getElementById('b-btn-text').value = banner?.buttonText || '';
+  document.getElementById('b-btn-link').value = banner?.buttonLink || '';
+  document.getElementById('b-order').value    = banner?.order      ?? 0;
+  document.getElementById('b-active').checked = banner ? banner.active : true;
+
+  if (banner) {
+    editingBannerId = banner._id;
+    if (banner.image) {
+      document.getElementById('banner-existing-img-el').src         = banner.image;
+      document.getElementById('banner-existing-img-wrap').style.display = 'block';
+      document.getElementById('banner-img-placeholder').style.display   = 'none';
+      document.getElementById('banner-img-upload-area').style.pointerEvents = 'none';
+      document.getElementById('banner-img-upload-area').style.opacity    = '.45';
+    }
+  }
+}
+
+function closeBannerModal() {
+  if (newBannerFile) URL.revokeObjectURL(document.getElementById('banner-img-preview').src);
+  newBannerFile = null;
+  document.getElementById('banner-modal').classList.add('hidden');
+}
+
+function editBanner(id) {
+  const b = allBanners.find(x => String(x._id) === id);
+  if (b) openBannerModal(b);
+}
+
+function previewBannerImage(input) {
+  if (!input.files || !input.files.length) return;
+  newBannerFile = input.files[0];
+  const url = URL.createObjectURL(newBannerFile);
+  document.getElementById('banner-img-preview').src          = url;
+  document.getElementById('banner-img-preview-wrap').style.display = 'block';
+  document.getElementById('banner-img-placeholder').style.display  = 'none';
+}
+
+function removeBannerNewImage() {
+  if (newBannerFile) URL.revokeObjectURL(document.getElementById('banner-img-preview').src);
+  newBannerFile = null;
+  document.getElementById('banner-img-input').value = '';
+  document.getElementById('banner-img-preview-wrap').style.display  = 'none';
+  document.getElementById('banner-img-placeholder').style.display   = 'block';
+}
+
+function removeBannerExistingImage() {
+  bannerImageRemoved = true;
+  document.getElementById('banner-existing-img-wrap').style.display   = 'none';
+  document.getElementById('banner-img-placeholder').style.display     = 'block';
+  document.getElementById('banner-img-upload-area').style.pointerEvents = 'auto';
+  document.getElementById('banner-img-upload-area').style.opacity     = '1';
+}
+
+async function saveBanner() {
+  const errEl  = document.getElementById('banner-form-error');
+  const btn    = document.getElementById('save-banner-btn');
+  errEl.textContent = '';
+
+  const title = document.getElementById('b-title').value.trim();
+  if (!title) return errEl.textContent = 'Title is required';
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const fd = new FormData();
+  fd.append('title',      title);
+  fd.append('subtitle',   document.getElementById('b-subtitle').value.trim());
+  fd.append('buttonText', document.getElementById('b-btn-text').value.trim());
+  fd.append('buttonLink', document.getElementById('b-btn-link').value.trim());
+  fd.append('order',      document.getElementById('b-order').value || '0');
+  fd.append('active',     document.getElementById('b-active').checked ? 'true' : 'false');
+
+  if (newBannerFile) {
+    fd.append('image', newBannerFile);
+  } else if (bannerImageRemoved) {
+    fd.append('removeImage', 'true');
+  }
+
+  try {
+    if (editingBannerId) await API.updateBanner(editingBannerId, fd);
+    else                 await API.createBanner(fd);
+    showToast(editingBannerId ? 'Banner updated!' : 'Banner created! 🎨', 'success');
+    closeBannerModal();
+    await loadHeroBannersTable();
+  } catch (err) {
+    errEl.textContent = err.message || 'Save failed';
+  } finally { btn.disabled = false; btn.textContent = 'Save Banner'; }
+}
+
+async function deleteBannerItem(id, title) {
+  if (!confirm(`Delete banner "${title}"? This cannot be undone.`)) return;
+  try {
+    await API.deleteBanner(id);
+    showToast(`Banner deleted`, 'info');
+    await loadHeroBannersTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function toggleBannerItem(id) {
+  try {
+    const d = await API.toggleBanner(id);
+    showToast(d.banner.active ? 'Banner activated' : 'Banner deactivated', 'success');
+    await loadHeroBannersTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function moveBanner(id, direction) {
+  const sorted = [...allBanners].sort((a, b) => a.order - b.order);
+  const idx    = sorted.findIndex(b => String(b._id) === id);
+  if (direction === 'up'   && idx === 0)                return;
+  if (direction === 'down' && idx === sorted.length - 1) return;
+
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  const items = [
+    { id: sorted[idx]._id,     order: sorted[swapIdx].order },
+    { id: sorted[swapIdx]._id, order: sorted[idx].order }
+  ];
+
+  try {
+    await API.reorderBanners(items);
+    await loadHeroBannersTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── BANNER PREVIEW
+function openBannerPreview(id) {
+  const b = allBanners.find(x => String(x._id) === id);
+  if (!b) return;
+
+  const imgPart = b.image
+    ? `<img src="${b.image}" alt="${b.title}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`
+    : '';
+  const btnPart = b.buttonText
+    ? (b.buttonLink
+        ? `<a href="${b.buttonLink}" style="display:inline-flex;align-items:center;gap:.4rem;padding:.7rem 1.6rem;background:#C8506E;color:#fff;border-radius:9999px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;text-decoration:none;box-shadow:0 4px 14px rgba(200,80,110,.4)">${b.buttonText} →</a>`
+        : `<span style="display:inline-flex;align-items:center;padding:.7rem 1.6rem;background:#C8506E;color:#fff;border-radius:9999px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500">${b.buttonText}</span>`)
+    : '';
+
+  document.getElementById('banner-preview-content').innerHTML = `
+    <div style="position:relative;height:380px;background:linear-gradient(135deg,#8B2E47,#C8506E);overflow:hidden">
+      ${imgPart}
+      <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(42,35,35,.68) 0%,rgba(42,35,35,.35) 55%,rgba(42,35,35,.05) 100%)"></div>
+      <div style="position:relative;z-index:2;padding:3rem 3.5rem;height:100%;display:flex;flex-direction:column;justify-content:center;max-width:560px">
+        <h2 style="font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;color:#fff;line-height:1.2;margin-bottom:.75rem;text-shadow:0 2px 12px rgba(42,35,35,.25)">${b.title}</h2>
+        ${b.subtitle ? `<p style="font-family:'DM Sans',sans-serif;font-size:1rem;color:rgba(255,255,255,.88);margin-bottom:1.5rem;line-height:1.65">${b.subtitle}</p>` : ''}
+        ${btnPart}
+      </div>
+    </div>`;
+
+  document.getElementById('banner-preview-modal').classList.remove('hidden');
+}
+
+function closeBannerPreview() {
+  document.getElementById('banner-preview-modal').classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  HOMEPAGE CATEGORIES
+// ════════════════════════════════════════════════════════════════════
+function hpEsc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function ensureShopCategories() {
+  if (shopCategoriesCache) return shopCategoriesCache;
+  try {
+    const d = await API.getCategories();
+    shopCategoriesCache = (d.categories || []).map(c => ({ name: c.name, slug: c.slug }));
+  } catch { shopCategoriesCache = []; }
+  return shopCategoriesCache;
+}
+
+async function loadHomeCategoriesTable() {
+  document.getElementById('home-cats-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getAdminHomeCategories();
+    allHomeCats = d.categories;
+    document.getElementById('home-cats-count').textContent = `(${d.categories.length})`;
+    renderHomeCategoriesTable(allHomeCats);
+  } catch (e) {
+    document.getElementById('home-cats-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function renderHomeCategoriesTable(cats) {
+  if (!cats.length) {
+    document.getElementById('home-cats-table-wrap').innerHTML =
+      '<p style="text-align:center;color:#7A6B6B;padding:2rem">No category cards yet. Add your first one! 🗂️</p>';
+    return;
+  }
+  const rows = cats.map((c, i) => {
+    const imgEl = c.image
+      ? `<img src="${hpEsc(c.image)}" alt="${hpEsc(c.title)}" style="width:100%;height:100%;object-fit:cover">`
+      : `<span style="font-size:1.4rem">🖼️</span>`;
+    const link = c.linkCategory
+      ? `<span style="background:#EAF3EA;color:#3C7A4B;border-radius:4px;padding:.2rem .5rem;font-size:.76rem">${hpEsc(c.linkCategory)}</span>`
+      : `<span style="color:#C4A882">All products</span>`;
+    const upDis = i === 0, dnDis = i === cats.length - 1;
+    const arrowBase = 'padding:.12rem .45rem;font-size:.62rem;background:#F4EEE8;color:#7A6B6B;line-height:1.2;border-radius:4px;border:none;';
+    const upBtn = `<button style="${arrowBase}cursor:${upDis?'not-allowed':'pointer'};opacity:${upDis?'.35':'1'}" onclick="moveHomeCat('${c._id}','up')" ${upDis?'disabled':''}>▲</button>`;
+    const dnBtn = `<button style="${arrowBase}cursor:${dnDis?'not-allowed':'pointer'};opacity:${dnDis?'.35':'1'}" onclick="moveHomeCat('${c._id}','down')" ${dnDis?'disabled':''}>▼</button>`;
+    const safeTitle = (c.title||'').replace(/'/g,"\\'").replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<tr>
+      <td><div style="width:62px;height:78px;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#F4D6DF,#C8506E);display:flex;align-items:center;justify-content:center;flex-shrink:0">${imgEl}</div></td>
+      <td><strong>${hpEsc(c.title)}</strong>${c.subtitle?`<div style="font-size:.75rem;color:#7A6B6B;margin-top:.1rem">${hpEsc(c.subtitle)}</div>`:''}</td>
+      <td>${link}</td>
+      <td><div style="display:flex;align-items:center;gap:.35rem"><span style="font-weight:600">${c.order}</span><div style="display:flex;flex-direction:column;gap:.1rem">${upBtn}${dnBtn}</div></div></td>
+      <td><span class="status-badge ${c.active?'status-Delivered':'status-Cancelled'}">${c.active?'Active':'Inactive'}</span></td>
+      <td><div class="action-btns">
+        <button class="btn-tbl btn-edit" onclick="editHomeCat('${c._id}')">✏️ Edit</button>
+        <button class="btn-tbl ${c.active?'btn-del':'btn-restock'}" onclick="toggleHomeCatItem('${c._id}')">${c.active?'⏸ Disable':'▶ Enable'}</button>
+        <button class="btn-tbl btn-del" onclick="deleteHomeCatItem('${c._id}','${safeTitle}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('home-cats-table-wrap').innerHTML =
+    `<table><thead><tr><th>Image</th><th>Title / Subtitle</th><th>Linked Category</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+async function openHomeCatModal(cat = null) {
+  editingHomeCatId = null; newHomeCatFile = null; homeCatImageRemoved = false;
+  document.getElementById('home-cat-modal').classList.remove('hidden');
+  document.getElementById('home-cat-modal-title').textContent = cat ? 'Edit Category Card' : 'Add Category Card';
+  document.getElementById('home-cat-form-error').textContent = '';
+  document.getElementById('hc-img-input').value = '';
+  document.getElementById('hc-img-placeholder').style.display = 'block';
+  document.getElementById('hc-img-preview-wrap').style.display = 'none';
+  document.getElementById('hc-existing-img-wrap').style.display = 'none';
+  document.getElementById('hc-img-upload-area').style.pointerEvents = 'auto';
+  document.getElementById('hc-img-upload-area').style.opacity = '1';
+
+  const cats = await ensureShopCategories();
+  const sel = document.getElementById('hc-link');
+  sel.innerHTML = '<option value="">— None (links to all products) —</option>' +
+    cats.map(c => `<option value="${hpEsc(c.slug)}">${hpEsc(c.name)} (${hpEsc(c.slug)})</option>`).join('');
+
+  document.getElementById('hc-title').value    = cat?.title    || '';
+  document.getElementById('hc-subtitle').value = cat?.subtitle || '';
+  document.getElementById('hc-link').value     = cat?.linkCategory || '';
+  document.getElementById('hc-order').value    = cat?.order ?? allHomeCats.length;
+  document.getElementById('hc-active').checked = cat ? cat.active : true;
+
+  if (cat) {
+    editingHomeCatId = cat._id;
+    if (cat.image) {
+      document.getElementById('hc-existing-img-el').src = cat.image;
+      document.getElementById('hc-existing-img-wrap').style.display = 'block';
+      document.getElementById('hc-img-placeholder').style.display = 'none';
+      document.getElementById('hc-img-upload-area').style.pointerEvents = 'none';
+      document.getElementById('hc-img-upload-area').style.opacity = '.45';
+    }
+  }
+}
+
+function closeHomeCatModal() {
+  if (newHomeCatFile) URL.revokeObjectURL(document.getElementById('hc-img-preview').src);
+  newHomeCatFile = null;
+  document.getElementById('home-cat-modal').classList.add('hidden');
+}
+
+function editHomeCat(id) {
+  const c = allHomeCats.find(x => String(x._id) === id);
+  if (c) openHomeCatModal(c);
+}
+
+function previewHomeCatImage(input) {
+  if (!input.files || !input.files.length) return;
+  newHomeCatFile = input.files[0];
+  const url = URL.createObjectURL(newHomeCatFile);
+  document.getElementById('hc-img-preview').src = url;
+  document.getElementById('hc-img-preview-wrap').style.display = 'block';
+  document.getElementById('hc-img-placeholder').style.display = 'none';
+}
+
+function removeHomeCatNewImage() {
+  if (newHomeCatFile) URL.revokeObjectURL(document.getElementById('hc-img-preview').src);
+  newHomeCatFile = null;
+  document.getElementById('hc-img-input').value = '';
+  document.getElementById('hc-img-preview-wrap').style.display = 'none';
+  document.getElementById('hc-img-placeholder').style.display = 'block';
+}
+
+function removeHomeCatExistingImage() {
+  homeCatImageRemoved = true;
+  document.getElementById('hc-existing-img-wrap').style.display = 'none';
+  document.getElementById('hc-img-placeholder').style.display = 'block';
+  document.getElementById('hc-img-upload-area').style.pointerEvents = 'auto';
+  document.getElementById('hc-img-upload-area').style.opacity = '1';
+}
+
+async function saveHomeCat() {
+  const errEl = document.getElementById('home-cat-form-error');
+  const btn   = document.getElementById('save-home-cat-btn');
+  errEl.textContent = '';
+  const title = document.getElementById('hc-title').value.trim();
+  if (!title) return errEl.textContent = 'Title is required';
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const fd = new FormData();
+  fd.append('title',        title);
+  fd.append('subtitle',     document.getElementById('hc-subtitle').value.trim());
+  fd.append('linkCategory', document.getElementById('hc-link').value);
+  fd.append('order',        document.getElementById('hc-order').value || '0');
+  fd.append('active',       document.getElementById('hc-active').checked ? 'true' : 'false');
+  if (newHomeCatFile)        fd.append('image', newHomeCatFile);
+  else if (homeCatImageRemoved) fd.append('removeImage', 'true');
+
+  try {
+    if (editingHomeCatId) await API.updateHomeCategory(editingHomeCatId, fd);
+    else                  await API.createHomeCategory(fd);
+    showToast(editingHomeCatId ? 'Category updated!' : 'Category card created! 🗂️', 'success');
+    closeHomeCatModal();
+    await loadHomeCategoriesTable();
+  } catch (err) {
+    errEl.textContent = err.message || 'Save failed';
+  } finally { btn.disabled = false; btn.textContent = 'Save Category Card'; }
+}
+
+async function deleteHomeCatItem(id, title) {
+  if (!confirm(`Delete category card "${title}"? This cannot be undone.`)) return;
+  try {
+    await API.deleteHomeCategory(id);
+    showToast('Category card deleted', 'info');
+    await loadHomeCategoriesTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function toggleHomeCatItem(id) {
+  try {
+    const d = await API.toggleHomeCategory(id);
+    showToast(d.category.active ? 'Card activated' : 'Card deactivated', 'success');
+    await loadHomeCategoriesTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function moveHomeCat(id, direction) {
+  const sorted = [...allHomeCats].sort((a, b) => a.order - b.order);
+  const idx = sorted.findIndex(c => String(c._id) === id);
+  if (direction === 'up'   && idx === 0)                 return;
+  if (direction === 'down' && idx === sorted.length - 1) return;
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  const items = [
+    { id: sorted[idx]._id,     order: sorted[swapIdx].order },
+    { id: sorted[swapIdx]._id, order: sorted[idx].order }
+  ];
+  try {
+    await API.reorderHomeCategories(items);
+    await loadHomeCategoriesTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  HOMEPAGE FEATURES — Best Sellers / New Arrivals
+// ════════════════════════════════════════════════════════════════════
+async function loadFeatureSection(section) {
+  const host = document.getElementById(`feature-panel-${section}`);
+  if (!host) return;
+  host.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getAdminHomeSection(section);
+    featureState[section].items = d.items || [];
+    featureState[section].max   = d.max || 8;
+    renderFeatureSection(section);
+  } catch (e) {
+    host.innerHTML = `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function renderFeatureSection(section) {
+  const host  = document.getElementById(`feature-panel-${section}`);
+  const st    = featureState[section];
+  const items = [...st.items].sort((a, b) => a.order - b.order);
+  const niceName = section === 'bestsellers' ? 'Best Sellers' : 'New Arrivals';
+
+  const configRow = `
+    <div class="table-box" style="margin-bottom:1.2rem">
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;padding:.4rem .2rem">
+        <label style="font-size:.85rem;font-weight:500;color:#5A4A4A">Max products shown on homepage</label>
+        <input type="number" id="feat-max-${section}" class="form-control" min="1" max="50" value="${st.max}" style="width:90px">
+        <button class="btn-tbl btn-view" onclick="saveFeatureMax('${section}')">Save</button>
+        <span style="font-size:.78rem;color:#7A6B6B">Active picks: ${items.filter(i => i.active).length}</span>
+      </div>
+    </div>`;
+
+  let tableHtml;
+  if (!items.length) {
+    tableHtml = `<p style="text-align:center;color:#7A6B6B;padding:2rem">No products picked yet. The homepage is currently showing automatic ${niceName.toLowerCase()}. Click "Add Products" to curate this row.</p>`;
+  } else {
+    const rows = items.map((it, i) => {
+      const p = it.product;
+      const imgEl = p?.image
+        ? `<img src="${hpEsc(p.image)}" alt="" style="width:100%;height:100%;object-fit:cover">`
+        : `<span style="font-size:1.3rem">${p?.emoji || '✨'}</span>`;
+      const upDis = i === 0, dnDis = i === items.length - 1;
+      const arrowBase = 'padding:.12rem .45rem;font-size:.62rem;background:#F4EEE8;color:#7A6B6B;line-height:1.2;border-radius:4px;border:none;';
+      const upBtn = `<button style="${arrowBase}cursor:${upDis?'not-allowed':'pointer'};opacity:${upDis?'.35':'1'}" onclick="moveFeature('${section}','${it._id}','up')" ${upDis?'disabled':''}>▲</button>`;
+      const dnBtn = `<button style="${arrowBase}cursor:${dnDis?'not-allowed':'pointer'};opacity:${dnDis?'.35':'1'}" onclick="moveFeature('${section}','${it._id}','down')" ${dnDis?'disabled':''}>▼</button>`;
+      const overMax = i >= st.max;
+      const name = p ? `<strong>${hpEsc(p.name)}</strong>` : '<em style="color:#C8506E">Product removed</em>';
+      const safeName = (p?.name || 'product').replace(/'/g, "\\'");
+      return `<tr style="${overMax ? 'opacity:.5' : ''}">
+        <td><div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,#F4D6DF,#C8506E);display:flex;align-items:center;justify-content:center">${imgEl}</div></td>
+        <td>${name}${p ? `<div style="font-size:.74rem;color:#7A6B6B">${hpEsc(p.brand || '')} · ${hpEsc(p.category || '')}</div>` : ''}</td>
+        <td>${p ? Number(p.price).toFixed(2) + ' EGP' : '—'}</td>
+        <td><div style="display:flex;align-items:center;gap:.35rem"><span style="font-weight:600">${i + 1}</span><div style="display:flex;flex-direction:column;gap:.1rem">${upBtn}${dnBtn}</div></div></td>
+        <td><span class="status-badge ${it.active ? 'status-Delivered' : 'status-Cancelled'}">${it.active ? 'Active' : 'Hidden'}</span></td>
+        <td><div class="action-btns">
+          <button class="btn-tbl ${it.active ? 'btn-del' : 'btn-restock'}" onclick="toggleFeatureItem('${section}','${it._id}')">${it.active ? '⏸ Hide' : '▶ Show'}</button>
+          <button class="btn-tbl btn-del" onclick="removeFeatureItem('${section}','${it._id}','${safeName}')">🗑 Remove</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+    tableHtml = `<table><thead><tr><th>Image</th><th>Product</th><th>Price</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table>
+      <p style="font-size:.76rem;color:#7A6B6B;padding:.7rem 0 0">Rows beyond the max (${st.max}) are dimmed and will not appear on the homepage.</p>`;
+  }
+
+  host.innerHTML = configRow + `
+    <div class="table-box">
+      <div class="table-header">
+        <h3>${niceName} Picks <span style="font-size:.78rem;color:#7A6B6B">(${items.length})</span></h3>
+        <button class="btn-tbl btn-view" onclick="openFeaturePicker('${section}')">+ Add Products</button>
+      </div>
+      ${tableHtml}
+    </div>`;
+}
+
+async function saveFeatureMax(section) {
+  const val = parseInt(document.getElementById(`feat-max-${section}`).value, 10);
+  if (!Number.isFinite(val) || val < 1) return showToast('Max must be a positive number', 'error');
+  try {
+    await API.setHomeSectionMax(section, val);
+    featureState[section].max = val;
+    showToast('Max updated', 'success');
+    renderFeatureSection(section);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function moveFeature(section, id, direction) {
+  const sorted = [...featureState[section].items].sort((a, b) => a.order - b.order);
+  const idx = sorted.findIndex(i => String(i._id) === id);
+  if (direction === 'up'   && idx === 0)                 return;
+  if (direction === 'down' && idx === sorted.length - 1) return;
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  const items = [
+    { id: sorted[idx]._id,     order: sorted[swapIdx].order },
+    { id: sorted[swapIdx]._id, order: sorted[idx].order }
+  ];
+  try {
+    await API.reorderHomeFeatures(section, items);
+    await loadFeatureSection(section);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function toggleFeatureItem(section, id) {
+  try {
+    await API.toggleHomeFeature(section, id);
+    await loadFeatureSection(section);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function removeFeatureItem(section, id, name) {
+  if (!confirm(`Remove "${name}" from this section?`)) return;
+  try {
+    await API.removeHomeFeature(section, id);
+    showToast('Removed', 'info');
+    await loadFeatureSection(section);
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── Feature product picker
+async function openFeaturePicker(section) {
+  pickerSection = section;
+  document.getElementById('feature-picker-title').textContent =
+    'Add Products — ' + (section === 'bestsellers' ? 'Best Sellers' : 'New Arrivals');
+  document.getElementById('picker-search').value = '';
+  document.getElementById('feature-picker-modal').classList.remove('hidden');
+  document.getElementById('picker-list').innerHTML = '<div class="spinner"></div>';
+  try {
+    if (!pickerProducts.length) {
+      const d = await API.getAllAdmin();
+      pickerProducts = d.products || [];
+    }
+    renderPickerList();
+  } catch (e) {
+    document.getElementById('picker-list').innerHTML = `<p style="padding:1rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function closeFeaturePicker() {
+  document.getElementById('feature-picker-modal').classList.add('hidden');
+  pickerSection = null;
+}
+
+function renderPickerList() {
+  if (!pickerSection) return;
+  const q = (document.getElementById('picker-search').value || '').toLowerCase().trim();
+  const chosen = new Set(featureState[pickerSection].items.map(i => String(i.product?._id)));
+  let list = pickerProducts;
+  if (q) list = list.filter(p => (`${p.name} ${p.brand} ${p.sku} ${p.category}`).toLowerCase().includes(q));
+  if (!list.length) {
+    document.getElementById('picker-list').innerHTML = '<p style="padding:1rem;color:#7A6B6B;text-align:center">No matching products</p>';
+    return;
+  }
+  document.getElementById('picker-list').innerHTML = list.map(p => {
+    const img = getProductImage(p);
+    const imgEl = img
+      ? `<img src="${hpEsc(img)}" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:44px;height:44px;border-radius:8px;background:#F4EEE8;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.emoji || '✨'}</div>`;
+    const already = chosen.has(String(p._id));
+    const btn = already
+      ? `<span style="font-size:.78rem;color:#3C7A4B;font-weight:600;flex-shrink:0">✓ Added</span>`
+      : `<button class="btn-tbl btn-view" style="flex-shrink:0" onclick="addFeatureFromPicker('${p._id}')">+ Add</button>`;
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.6rem .8rem;border-bottom:1px solid #F4EEE8">
+      ${imgEl}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:500;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${hpEsc(p.name)}</div>
+        <div style="font-size:.74rem;color:#7A6B6B">${hpEsc(p.brand || '')} · ${hpEsc(p.category || '')} · ${Number(p.finalPrice || p.price).toFixed(2)} EGP</div>
+      </div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+async function addFeatureFromPicker(productId) {
+  if (!pickerSection) return;
+  try {
+    await API.addHomeFeature(pickerSection, productId);
+    await loadFeatureSection(pickerSection);
+    renderPickerList();
+    showToast('Added to section', 'success');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── PAYMENTS TABLE
+async function loadPaymentsTable() {
+  document.getElementById('payments-table-wrap').innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.allOrders();
+    allOrders = d.orders; // refresh shared cache
+    applyPaymentFilters();
+  } catch (e) {
+    document.getElementById('payments-table-wrap').innerHTML =
+      `<p style="padding:1.5rem;color:#C8506E">${e.message}</p>`;
+  }
+}
+
+function applyPaymentFilters() {
+  const method  = document.getElementById('filter-pay-method')?.value  || '';
+  const status  = document.getElementById('filter-pay-status')?.value  || '';
+  const search  = (document.getElementById('search-payments')?.value   || '').toLowerCase().trim();
+
+  let orders = allOrders.filter(o => ['InstaPay', 'VodafoneCash'].includes(o.paymentMethod));
+
+  if (method) orders = orders.filter(o => o.paymentMethod  === method);
+  if (status) orders = orders.filter(o => o.paymentStatus  === status);
+  if (search) {
+    orders = orders.filter(o =>
+      o.orderNumber?.toLowerCase().includes(search) ||
+      o.shippingAddress?.fullName?.toLowerCase().includes(search) ||
+      o.shippingAddress?.email?.toLowerCase().includes(search) ||
+      o.shippingAddress?.phone?.toLowerCase().includes(search) ||
+      o.guestEmail?.toLowerCase().includes(search)
+    );
+  }
+
+  document.getElementById('payments-count').textContent = `(${orders.length})`;
+  renderPaymentsTable(orders);
+}
+
+function clearPaymentFilters() {
+  document.getElementById('filter-pay-method').value = '';
+  document.getElementById('filter-pay-status').value = '';
+  document.getElementById('search-payments').value   = '';
+  applyPaymentFilters();
+}
+
+function renderPaymentsTable(orders) {
+  if (!orders.length) {
+    document.getElementById('payments-table-wrap').innerHTML =
+      '<p style="text-align:center;color:#7A6B6B;padding:2.5rem">No manual payment orders found.</p>';
+    return;
+  }
+  document.getElementById('payments-table-wrap').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th><th>Customer</th><th>Total</th>
+          <th>Method</th><th>Status</th><th>Proof</th><th>Date</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${orders.map(o => {
+          const methodLabel = o.paymentMethod === 'VodafoneCash' ? 'Vodafone Cash' : o.paymentMethod;
+          const proofCell   = o.paymentProof
+            ? `<img src="${o.paymentProof}" alt="proof"
+                style="width:44px;height:44px;object-fit:cover;border-radius:6px;
+                  cursor:pointer;border:1.5px solid #E8D5C4;display:block"
+                onclick="openProofLightbox('${o.paymentProof}')" title="Click to enlarge">`
+            : '<span style="color:#7A6B6B;font-size:.75rem">—</span>';
+          return `<tr>
+            <td>
+              <strong>${o.orderNumber}</strong>
+              <div style="font-size:.7rem;color:#7A6B6B">${esc(o.shippingAddress?.email || o.guestEmail || '')}</div>
+            </td>
+            <td>
+              <div style="font-weight:500">${esc(o.shippingAddress?.fullName || o.guestEmail || 'Guest')}</div>
+              <div style="font-size:.75rem;color:#7A6B6B">${esc(o.shippingAddress?.phone || '')}</div>
+            </td>
+            <td><strong>${o.total.toFixed(2)} EGP</strong></td>
+            <td><span class="status-badge" style="background:#D4E0F4;color:#2E4E8B">${methodLabel}</span></td>
+            <td><span class="status-badge ${payStatusClass(o.paymentStatus)}">${formatPayStatus(o.paymentStatus)}</span></td>
+            <td>${proofCell}</td>
+            <td style="font-size:.75rem;color:#7A6B6B">
+              ${new Date(o.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}
+            </td>
+            <td>
+              <button class="btn-tbl btn-view" onclick="openVerifyModal('${o._id}')">👁 Verify</button>
+            </td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── VERIFY PAYMENT MODAL
+async function openVerifyModal(orderId) {
+  document.getElementById('verify-payment-modal').classList.remove('hidden');
+  document.getElementById('verify-payment-body').innerHTML = '<div class="spinner"></div>';
+
+  let order = allOrders.find(o => String(o._id) === orderId);
+  if (!order) {
+    try { const d = await API.getAdminOrder(orderId); order = d.order; }
+    catch (e) {
+      document.getElementById('verify-payment-body').innerHTML =
+        `<p style="color:#C8506E;padding:1rem">Could not load order: ${e.message}</p>`;
+      return;
+    }
+  }
+
+  const methodLabel = order.paymentMethod === 'VodafoneCash' ? 'Vodafone Cash' : order.paymentMethod;
+  const proof       = order.paymentProof;
+  const isSettled   = ['Verified', 'Rejected'].includes(order.paymentStatus);
+
+  document.getElementById('verify-payment-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.2rem">
+      <!-- Order Info -->
+      <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem">
+        <h4 style="font-size:.78rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.8rem">Order Info</h4>
+        ${[
+          ['Order #',    order.orderNumber],
+          ['Customer',   order.shippingAddress?.fullName || order.guestEmail || 'Guest'],
+          ['Email',      order.shippingAddress?.email    || '—'],
+          ['Phone',      order.shippingAddress?.phone    || '—'],
+          ['Total',      order.total.toFixed(2) + ' EGP'],
+          ['Method',     methodLabel],
+        ].map(([l,v]) => `
+          <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+            <span style="color:#7A6B6B">${l}</span><span><strong>${esc(v)}</strong></span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.4rem">
+          <span style="color:#7A6B6B">Pay Status</span>
+          <span class="status-badge ${payStatusClass(order.paymentStatus)}">${formatPayStatus(order.paymentStatus)}</span>
+        </div>
+        <div style="margin-top:.5rem;font-size:.75rem;color:#7A6B6B">
+          Ordered: ${new Date(order.createdAt).toLocaleString()}
+        </div>
+        ${order.verificationDate ? `
+          <div style="margin-top:.35rem;font-size:.75rem;color:#7A6B6B">
+            Verified: ${new Date(order.verificationDate).toLocaleString()}
+          </div>` : ''}
+        ${order.verificationNotes ? `
+          <div style="margin-top:.6rem;background:#F0E3B8;padding:.5rem .75rem;border-radius:8px;font-size:.8rem;color:#5E4A0A">
+            📝 ${order.verificationNotes}
+          </div>` : ''}
+      </div>
+      <!-- Proof image -->
+      <div>
+        <h4 style="font-size:.78rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.8rem">Payment Screenshot</h4>
+        ${proof ? `
+          <div style="position:relative;border-radius:12px;overflow:hidden;border:1.5px solid #E8D5C4;cursor:pointer"
+            onclick="openProofLightbox('${proof}')" title="Click to view full size">
+            <img src="${proof}" alt="Payment Proof"
+              style="width:100%;max-height:280px;object-fit:cover;display:block">
+            <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.38);
+              color:#fff;font-size:.72rem;padding:.3rem .6rem;text-align:center">
+              🔍 Click to enlarge
+            </div>
+          </div>` : `
+          <div style="background:#FAF6F1;border:2px dashed #E8D5C4;border-radius:12px;
+            padding:3rem 1rem;text-align:center;color:#7A6B6B">
+            <div style="font-size:2rem;margin-bottom:.5rem">📷</div>
+            <p style="font-size:.85rem">No screenshot uploaded</p>
+          </div>`}
+      </div>
+    </div>
+
+    <!-- Action area -->
+    ${!isSettled ? `
+    <div style="background:#FAF6F1;border-radius:12px;padding:1.2rem">
+      <h4 style="font-size:.78rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#7A6B6B;margin-bottom:.75rem">Verification Decision</h4>
+      <div class="form-group">
+        <label>Notes <span style="font-size:.72rem;color:#7A6B6B">(optional — sent as verification notes)</span></label>
+        <textarea class="form-control" id="verify-notes" rows="2"
+          placeholder="Add a note for this decision…" style="resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button class="btn-tbl btn-restock" style="flex:1;padding:.75rem;font-size:.88rem"
+          onclick="submitVerification('${order._id}','Verified')">✓ Approve Payment</button>
+        <button class="btn-tbl btn-del"     style="flex:1;padding:.75rem;font-size:.88rem"
+          onclick="submitVerification('${order._id}','Rejected')">✗ Reject Payment</button>
+      </div>
+    </div>` : `
+    <div style="background:${order.paymentStatus==='Verified'?'#D4E8D4':'#F4D6DF'};
+      border-radius:12px;padding:1rem;text-align:center;
+      color:${order.paymentStatus==='Verified'?'#2E6B3A':'#8B2E47'};font-size:.9rem">
+      ${order.paymentStatus==='Verified'
+        ? '✓ Payment has been approved'
+        : '✗ Payment has been rejected'}
+    </div>`}`;
+}
+
+function closeVerifyModal() { document.getElementById('verify-payment-modal').classList.add('hidden'); }
+
+async function submitVerification(orderId, status) {
+  const notes = document.getElementById('verify-notes')?.value?.trim() || '';
+
+  if (status === 'Rejected' && !notes) {
+    if (!confirm('Reject this payment without adding a note?\nConsider adding a reason for the customer record.')) return;
+  }
+  if (status === 'Verified') {
+    if (!confirm('Approve this payment? This will mark it as verified.')) return;
+  }
+
+  try {
+    await API.verifyPayment(orderId, { status, notes });
+    showToast(status === 'Verified' ? '✓ Payment approved!' : '✗ Payment rejected', status === 'Verified' ? 'success' : 'info');
+    closeVerifyModal();
+    // Refresh both tables
+    const d = await API.allOrders();
+    allOrders = d.orders;
+    applyPaymentFilters();
+    // Also refresh nav badge
+    await loadDashboard();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+// ── PROOF LIGHTBOX
+function openProofLightbox(url) {
+  document.getElementById('proof-lightbox-img').src = url;
+  document.getElementById('proof-lightbox').classList.remove('hidden');
+}
+function closeProofLightbox() { document.getElementById('proof-lightbox').classList.add('hidden'); }
+
+// ── SETTINGS PANEL
+async function loadSettingsPanel() {
+  document.getElementById('settings-error').textContent = '';
+  try {
+    const d = await API.getAdminSettings();
+    const map = {};
+    for (const s of d.settings) map[s.key] = s.value;
+
+    document.getElementById('s-instapay-name').value    = map.instapay_account_name || '';
+    document.getElementById('s-instapay-id').value      = map.instapay_identifier   || '';
+    document.getElementById('s-vcash-number').value     = map.vodafone_cash_number  || '';
+    document.getElementById('s-pay-instructions').value = map.payment_instructions  || '';
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function saveSettings() {
+  document.getElementById('settings-error').textContent = '';
+  const settings = {
+    instapay_account_name: document.getElementById('s-instapay-name').value.trim(),
+    instapay_identifier:   document.getElementById('s-instapay-id').value.trim(),
+    vodafone_cash_number:  document.getElementById('s-vcash-number').value.trim(),
+    payment_instructions:  document.getElementById('s-pay-instructions').value.trim()
+  };
+  try {
+    await API.updateSettings(settings);
+    showToast('Settings saved!', 'success');
+  } catch (e) {
+    document.getElementById('settings-error').textContent = e.message;
+  }
+}
+
+// ── TOAST
+function showToast(msg, type = 'info') {
+  const el = document.getElementById('toast-container');
+  const icons = { success:'✅', error:'❌', info:'💬' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]||'💬'}</span><span>${msg}</span>`;
+  el.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; t.style.transition = '.3s';
+    setTimeout(() => t.remove(), 300);
+  }, 3500);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+// DomDom Store — MySQL schema (Prisma)
+// Mirrors the original Mongoose models 1:1. String cuid() PKs are exposed
+// to the API as `_id` by the mapper layer so the frontend stays unchanged.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────── User + embedded addresses + wishlist
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user") // 'user' | 'admin'
+  phone     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addresses      Address[]
+  wishlist       WishlistItem[]
+  orders         Order[]        @relation("OrderUser")
+  reviews        Review[]
+  verifiedOrders Order[]        @relation("OrderVerifiedBy")
+
+  @@map("users")
+}
+
+// User.addresses[] (embedded subdoc) → child table
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String  @default("")
+  phone      String  @default("")
+  city       String  @default("")
+  area       String  @default("")
+  address    String  @default("")
+  postalCode String  @default("")
+  isDefault  Boolean @default(false)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// User.wishlist[] (ObjectId[] ref Product) → N:N join table
+model WishlistItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId])
+  @@map("wishlist_items")
+}
+
+// ─────────────────────────────────────────── Category
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  emoji     String   @default("✨")
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+// ─────────────────────────────────────────── Product + embedded colors
+model Product {
+  id                String   @id @default(cuid())
+  name              String
+  brand             String   @default("DomDom")
+  category          String // matches Category.slug (loose, string — as in Mongo)
+  price             Float
+  oldPrice          Float?
+  description       String   @db.Text // non-null; repo always supplies '' when absent
+  details           Json? // string[]
+  badge             String? // 'new' | 'sale' | 'bestseller' | null | ''
+  emoji             String   @default("✨")
+  sku               String   @default("")
+  stock             Int      @default(0)
+  lowStockThreshold Int      @default(10)
+  rating            Float    @default(0)
+  reviewCount       Int      @default(0)
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  colors           ProductColor[]
+  wishlistItems    WishlistItem[]
+  orderItems       OrderItem[]
+  reviews          Review[]
+  homepageFeatures HomepageFeature[]
+
+  @@index([category])
+  @@index([active])
+  @@map("products")
+}
+
+// Product.colors[] (embedded subdoc with its own _id) → child table
+model ProductColor {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  hex       String  @default("")
+  images    Json    @default("[]") // string[]
+  sortOrder Int     @default(0) // preserve array ordering
+
+  @@index([productId])
+  @@map("product_colors")
+}
+
+// ─────────────────────────────────────────── Order + embedded items + shipping snapshot
+model Order {
+  id          String  @id @default(cuid())
+  orderNumber String  @unique
+  userId      String?
+  user        User?   @relation("OrderUser", fields: [userId], references: [id], onDelete: SetNull)
+  guestEmail  String  @default("")
+
+  subtotal     Float
+  shippingCost Float  @default(0)
+  discount     Float  @default(0)
+  total        Float
+
+  paymentMethod String @default("COD") // COD | InstaPay | VodafoneCash
+  paymentStatus String @default("Pending") // Pending|Paid|Refunded|PendingVerification|Verified|Rejected
+  orderStatus   String @default("Pending") // Pending|Processing|Shipped|Delivered|Cancelled
+  discountCode  String @default("")
+  adminNotes    String @db.Text // non-null; repo supplies ''
+
+  // manual payment fields
+  paymentProof      String?
+  verificationDate  DateTime?
+  verificationNotes String    @db.Text // non-null; repo supplies ''
+  verifiedById      String?
+  verifiedBy        User?     @relation("OrderVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  // shippingAddress (embedded, immutable snapshot) → denormalized columns
+  shippingFullName   String @default("")
+  shippingPhone      String @default("")
+  shippingEmail      String @default("")
+  shippingCity       String @default("")
+  shippingArea       String @default("")
+  shippingAddress    String @db.Text // non-null; repo supplies ''
+  shippingPostalCode String @default("")
+  shippingNotes      String @db.Text // non-null; repo supplies ''
+
+  items     OrderItem[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([guestEmail])
+  @@index([paymentStatus])
+  @@map("orders")
+}
+
+// Order.items[] (embedded subdoc) → child table
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName  String
+  productEmoji String   @default("✨")
+  productPhoto String?
+  colorName    String   @default("")
+  colorHex     String   @default("")
+  price        Float
+  quantity     Int
+  lineTotal    Float
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// ─────────────────────────────────────────── Coupon
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  discountType  String // 'percentage' | 'fixed'
+  discountValue Float
+  maxUses       Int? // null = unlimited
+  usedCount     Int       @default(0)
+  validFrom     DateTime?
+  validUntil    DateTime?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("coupons")
+}
+
+// ─────────────────────────────────────────── Review
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  author    String
+  avatar    String   @default("👤")
+  rating    Int
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@map("reviews")
+}
+
+// ─────────────────────────────────────────── HeroBanner
+model HeroBanner {
+  id         String   @id @default(cuid())
+  title      String
+  subtitle   String   @default("")
+  image      String   @default("")
+  buttonText String   @default("")
+  buttonLink String   @default("")
+  active     Boolean  @default(true)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("hero_banners")
+}
+
+// ─────────────────────────────────────────── HomepageCategory (managed category cards on the homepage)
+model HomepageCategory {
+  id           String   @id @default(cuid())
+  title        String
+  subtitle     String   @default("")
+  image        String   @default("")
+  linkCategory String   @default("") // Category.slug the card filters the shop by
+  active       Boolean  @default(true)
+  order        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("homepage_categories")
+}
+
+// ─────────────────────────────────────────── HomepageFeature (curated Best Sellers / New Arrivals picks)
+model HomepageFeature {
+  id        String   @id @default(cuid())
+  section   String // 'bestsellers' | 'new-arrivals'
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  active    Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([section, productId])
+  @@index([section])
+  @@map("homepage_features")
+}
+
+// ─────────────────────────────────────────── Setting (key/value)
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text // non-null; repo supplies ''
+  label     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}

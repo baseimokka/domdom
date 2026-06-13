@@ -1,0 +1,416 @@
+/* ── Embedded Hero Slider ── horizontal layout ──────────────────────────── */
+
+.hero-visual {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dissolves the slider's left boundary into the hero background —
+   the seam between left content and right slider becomes atmospheric, not architectural */
+.hero-visual::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  background: linear-gradient(to right, var(--cream) 0%, transparent 100%);
+  z-index: 25;
+  pointer-events: none;
+}
+
+/* ── Main Card ─── */
+.hero-slider-card {
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+  /* Asymmetric radius: left edge (facing hero text) is soft, right edge is finished */
+  border-radius: 12px 20px 20px 12px;
+  overflow: hidden;
+  /* No box-shadow — card lives in the same atmospheric space as the hero */
+  background: rgba(244, 214, 223, 0.1);
+}
+
+/* ── Fallback (no active banners) ─── */
+.hero-slider-fallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--rose-light) 0%, #f7c8d6 55%, #f2b8c8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hsf-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hsf-blob-1 {
+  width: 340px; height: 340px;
+  background: radial-gradient(circle, rgba(200,80,110,.15) 0%, transparent 70%);
+  top: -70px; right: -50px;
+}
+.hsf-blob-2 {
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,168,76,.14) 0%, transparent 70%);
+  bottom: -30px; left: -30px;
+}
+
+.hsf-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* FIX P4 no-emoji-icons: icon is now an SVG wrapper, not an emoji */
+.hsf-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  filter: drop-shadow(0 6px 20px rgba(200,80,110,.28));
+}
+
+.hsf-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--rose-dark);
+  line-height: 1;
+  margin-bottom: 0.55rem;
+}
+.hsf-brand em { font-style: italic; color: var(--rose); }
+
+.hsf-tagline {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.6;
+  max-width: 210px;
+  margin: 0 auto;
+}
+
+/* ── Slider track (fills card absolutely) ─── */
+.hs-track-wrapper {
+  position: absolute;
+  inset: 0;
+  display: none; /* shown by JS */
+}
+
+.hs-track {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+}
+
+/* ── Individual Slide ─── */
+.hs-slide {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+  flex-shrink: 0;
+  /* fallback when no image; also base for blurred backdrop */
+  background: linear-gradient(135deg, var(--rose-light) 0%, #f7c5d5 55%, #f1b3c6 100%);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+/* Blurred backdrop — fills letterbox / pillarbox areas from contain.
+   Inherits the same background-image set inline by JS so any aspect
+   ratio looks intentional rather than leaving blank bars. */
+.hs-slide::before {
+  content: '';
+  position: absolute;
+  inset: -8%;           /* oversize to hide blurred soft edges */
+  background: inherit;
+  background-size: cover;
+  background-position: center;
+  filter: blur(44px) brightness(0.78) saturate(1.3);
+  z-index: 0;
+}
+
+/* Sharp image — fills the full card so object-fit: contain always has the
+   maximum possible area to work with, regardless of the photo's aspect ratio.
+   The blurred ::before backdrop fills any letterbox/pillarbox space. */
+.hs-slide-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  z-index: 1;
+  opacity: 1;
+}
+
+/* Overlay removed — image is the dominant visual element */
+.hs-slide-overlay {
+  display: none;
+}
+
+/* Content wrapper — bottom-anchored editorial bar.
+   At rest: invisible. On hover: frosted panel rises from the bottom so the
+   product image breathes freely above and text surfaces cleanly below. */
+.hs-slide-content {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  top: auto;
+  transform: none;
+  z-index: 2;
+  padding: 1.1rem 1.5rem 1.25rem 2.4rem;
+  max-width: 64%;
+  border-radius: 0 14px 14px 0;
+  background: rgba(250, 246, 241, 0);
+  backdrop-filter: blur(0px) saturate(1);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  transition: background 0.38s ease, backdrop-filter 0.38s ease, -webkit-backdrop-filter 0.38s ease;
+}
+.hero-slider-card:hover .hs-slide-content,
+.hero-slider-card.hs-controls-on .hs-slide-content {
+  background: rgba(250, 246, 241, 0.48);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+/* Title — hidden until hover/tap, lifts up on reveal */
+.hs-slide-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.95rem);
+  font-weight: 700;
+  color: var(--rose-dark);
+  line-height: 1.2;
+  margin-bottom: 0.45rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+/* Subtitle — hidden until hover/tap, slight delay for stagger */
+.hs-slide-subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  line-height: 1.65;
+  max-width: 210px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.28s ease 0.06s, transform 0.28s ease 0.06s;
+}
+
+/* Desktop hover — reveal title + subtitle */
+.hero-slider-card:hover .hs-slide-title,
+.hero-slider-card:hover .hs-slide-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile tap — reveal title + subtitle */
+.hero-slider-card.hs-controls-on .hs-slide-title,
+.hero-slider-card.hs-controls-on .hs-slide-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Primary CTA — hidden until hover/tap, staggered after subtitle */
+.hs-slide-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 1.3rem;
+  background: var(--rose);
+  color: #fff;
+  border-radius: var(--r-full);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.81rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(200, 80, 110, 0.3);
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.28s ease 0.12s, transform 0.28s ease 0.12s, background 0.2s;
+}
+.hero-slider-card:hover .hs-slide-btn,
+.hero-slider-card.hs-controls-on .hs-slide-btn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.hs-slide-btn:hover  { background: var(--rose-dark); transform: translateY(-2px); }
+.hs-slide-btn:active { transform: translateY(0); }
+
+/* ── Navigation Arrows — bottom-aligned, hidden until revealed ─── */
+.hs-btn {
+  position: absolute;
+  bottom: 0.75rem;
+  top: auto;
+  transform: none;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.88);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(42, 35, 35, 0.16);
+  z-index: 10;
+  /* invisible by default */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, background 0.2s, transform 0.18s;
+  color: var(--charcoal);
+  touch-action: manipulation;
+}
+
+/* Desktop: reveal on card hover */
+.hero-slider-card:hover .hs-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Mobile: reveal when card has .hs-controls-on (added by JS on tap) */
+.hero-slider-card.hs-controls-on .hs-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hs-btn:hover  { background: #fff; transform: scale(1.08); }
+.hs-btn:active { background: var(--rose-light); transform: scale(0.96); }
+.hs-btn:focus-visible {
+  outline: 2.5px solid var(--rose);
+  outline-offset: 2px;
+}
+.hs-btn svg  { pointer-events: none; }
+.hs-prev { left: 0.75rem; }
+.hs-next { right: 0.75rem; }
+
+/* ── Pagination Dots — bottom centre, vertically aligned with arrows ─── */
+.hs-dots {
+  position: absolute;
+  /* calc keeps dot centres level with arrow centres regardless of font size:
+     arrow centre = 0.75rem + 22px; dot centre = bottom + 3px → bottom = 0.75rem + 19px */
+  bottom: calc(0.75rem + 19px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.hs-dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(42, 35, 35, 0.22);
+  cursor: pointer;
+  transition: background 0.25s, width 0.25s;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+  /* FIX P2 tap-delay */
+  touch-action: manipulation;
+}
+/* FIX P2 touch-target-size: pseudo-element expands hit area to ~44×44 without affecting layout */
+.hs-dot::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
+.hs-dot.active { background: var(--rose); width: 18px; border-radius: 9px; }
+/* FIX P1 focus-states */
+.hs-dot:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ── Floating stat cards ─── */
+@keyframes hsFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+.hs-float-card {
+  position: absolute;
+  right: -1rem;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: var(--r-md);
+  padding: 0.6rem 0.85rem;
+  box-shadow: 0 4px 18px rgba(42, 35, 35, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  z-index: 20;
+  pointer-events: none;
+}
+.hs-fc-top    { top: 22%;    animation: hsFloat 3.2s ease-in-out infinite; animation-delay: 0.4s; }
+.hs-fc-bottom { bottom: 26%; animation: hsFloat 3.2s ease-in-out infinite; animation-delay: 1.1s; }
+
+.hs-fc-icon  { display: flex; align-items: center; flex-shrink: 0; }
+.hs-fc-label { font-size: 0.65rem; color: var(--muted); margin-bottom: 1px; white-space: nowrap; }
+.hs-fc-value { font-size: 0.82rem; font-weight: 600; color: var(--charcoal); white-space: nowrap; }
+
+/* ── FIX P1+P7 prefers-reduced-motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .hs-fc-top,
+  .hs-fc-bottom        { animation: none; }
+  .hs-track            { transition: none !important; }
+  .hs-btn,
+  .hs-slide-btn,
+  .hs-slide-title,
+  .hs-slide-subtitle,
+  .hs-slide-content    { transition: none; }
+  .hs-dot              { transition: none; }
+}
+
+/* ── Responsive ─── */
+@media (max-width: 1200px) {
+  .hs-slide-content { max-width: 70%; padding: 1rem 1.25rem 1.1rem 2rem; }
+  .hs-float-card    { right: -0.4rem; }
+}
+
+/* FIX P5 breakpoint-consistency: added 768px for tablet gap */
+@media (max-width: 1024px) {
+  .hero-visual      { align-self: auto; width: 100%; }
+  /* On stacked layout, restore equal border-radius and hide the left-edge fade */
+  .hero-visual::before { display: none; }
+  .hero-slider-card { min-height: 360px; flex: none; height: 360px; border-radius: 18px; }
+  .hs-slide-content { max-width: 72%; padding: 1rem 1rem 1.1rem 1.75rem; bottom: 1.25rem; }
+  .hs-slide-title   { font-size: 1.45rem; }
+  .hs-float-card    { display: none; }
+}
+
+@media (max-width: 768px) {
+  .hero-slider-card { height: 320px; border-radius: 16px; }
+  .hs-slide-content { max-width: 76%; padding: 0.9rem 1rem 1rem 1.6rem; bottom: 1rem; }
+  .hs-slide-title   { font-size: 1.35rem; }
+}
+
+@media (max-width: 600px) {
+  .hero-slider-card { height: 270px; border-radius: 14px; }
+  .hs-slide-content { max-width: 82%; padding: 0.85rem 0.75rem 0.9rem 1.25rem; bottom: 0.75rem; }
+  .hs-slide-title   { font-size: 1.2rem; }
+  .hs-slide-subtitle{ font-size: 0.78rem; margin-bottom: 0.9rem; max-width: 170px; }
+  .hs-slide-btn     { padding: 0.5rem 1rem; font-size: 0.78rem; }
+  /* FIX P2: keep arrows at 44×44 even on mobile — do not shrink below minimum */
+  .hs-btn           { width: 44px; height: 44px; }
+  .hsf-brand        { font-size: 2rem; }
+}
