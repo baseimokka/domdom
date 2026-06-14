@@ -241,10 +241,14 @@ const Cart = (() => {
       color = colors.find(c => c.name === product.selectedColor);
     if (!color) color = colors[0] || null;
 
+    // A color with no hex is an auto image-holder for a color-less product,
+    // not a real shade — keep its photo but don't surface it as a variant.
+    const isPlaceholder = !!color && !(color.hex && String(color.hex).trim());
+
     return {
-      variantId: color ? String(color._id || color.id || '') : '',
-      colorName: color ? (color.name || '') : (product.selectedColor || ''),
-      colorHex:  color ? (color.hex || '') : '',
+      variantId: (color && !isPlaceholder) ? String(color._id || color.id || '') : '',
+      colorName: (color && !isPlaceholder) ? (color.name || '') : (isPlaceholder ? '' : (product.selectedColor || '')),
+      colorHex:  (color && !isPlaceholder) ? (color.hex || '') : '',
       photo:     (color && color.images && color.images[0]) || getProductImage(product)
     };
   }

@@ -141,6 +141,13 @@ function getColorImages(p, idx) {
   return (p.colors || []).flatMap(c => c.images || []);
 }
 
+// A product only has selectable shades if its colors carry a real hex.
+// Color-less products get an auto image-holder color (empty hex) on the
+// backend — that must never render as a swatch.
+function hasShades(p) {
+  return (p.colors || []).some(c => c.hex && String(c.hex).trim());
+}
+
 // ── Render full product detail
 function renderDetail(p) {
   const images  = getColorImages(p, selectedColorIdx);
@@ -158,7 +165,7 @@ function renderDetail(p) {
     ? `<ul class="product-details-list">${p.details.map(d => `<li>${d}</li>`).join('')}</ul>`
     : '';
 
-  const colorsHTML = (p.colors || []).length
+  const colorsHTML = hasShades(p)
     ? `<div class="color-section">
         <h4>
           Shade:
