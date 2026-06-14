@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Load Egypt cities from API
 async function loadCities() {
   try {
-    const d = await fetch('http://localhost:3000/api/shipping/cities').then(r => r.json());
+    const d = await API.getShippingCities();
     citiesData = d.cities || [];
     const select = document.getElementById('ship-city');
     select.innerHTML = `<option value="">Select your city…</option>` +

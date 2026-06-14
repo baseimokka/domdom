@@ -88,6 +88,9 @@ const API = {
   uploadPaymentProof:   (id, fd)   => reqForm('POST', `/orders/${id}/payment-proof`, fd),
   verifyPayment:        (id, body) => req('PATCH', `/orders/${id}/verify-payment`, body, true),
 
+  // ── Shipping
+  getShippingCities:    ()         => req('GET', '/shipping/cities'),
+
   // ── Settings
   getSettings:      ()       => req('GET', '/settings'),
   getAdminSettings: ()       => req('GET', '/admin/settings', null, true),
