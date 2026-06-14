@@ -325,6 +325,22 @@ exports.cancelOrder = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+// DELETE /api/orders/:id  (admin — permanent hard delete)
+// Removes the order record and its line items (OrderItem cascades via schema)
+// plus the payment-proof image from disk. Does NOT adjust product stock — to
+// return inventory, Cancel the order first (which restocks), then delete.
+exports.deleteOrder = async (req, res, next) => {
+  try {
+    const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    if (order.paymentProof) deleteProofFile(order.paymentProof);
+    await prisma.order.delete({ where: { id: order.id } });
+
+    return res.json({ success: true, message: 'Order deleted' });
+  } catch (e) { next(e); }
+};
+
 // GET /api/orders/admin/:id
 exports.getAdminOne = async (req, res, next) => {
   try {

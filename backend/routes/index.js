@@ -81,6 +81,7 @@ router.patch('/orders/:id/cancel',       authMiddleware,  orderCtrl.cancelOrder)
 router.patch('/orders/:id/status',       adminMiddleware, orderCtrl.updateStatus);
 router.post('/orders/:id/payment-proof', optionalAuth,    orderCtrl.proofUpload.single('proof'), orderCtrl.uploadPaymentProof);
 router.patch('/orders/:id/verify-payment', adminMiddleware, orderCtrl.verifyPayment);
+router.delete('/orders/:id',             adminMiddleware, orderCtrl.deleteOrder);
 
 // ── REVIEWS
 router.get('/reviews',               reviewCtrl.getAll);

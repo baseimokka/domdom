@@ -84,6 +84,7 @@ const API = {
   allOrders:            ()         => req('GET',   '/orders/admin/all', null, true),
   getAdminOrder:        (id)       => req('GET',   `/orders/admin/${id}`, null, true),
   cancelOrder:          (id)       => req('PATCH', `/orders/${id}/cancel`, null, true),
+  deleteOrder:          (id)       => req('DELETE', `/orders/${id}`, null, true),
   updateStatus:         (id, body) => req('PATCH', `/orders/${id}/status`, body, true),
   uploadPaymentProof:   (id, fd)   => reqForm('POST', `/orders/${id}/payment-proof`, fd),
   verifyPayment:        (id, body) => req('PATCH', `/orders/${id}/verify-payment`, body, true),

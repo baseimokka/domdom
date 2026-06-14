@@ -1387,6 +1387,7 @@ function renderOrdersTable(orders) {
                 ${['InstaPay','VodafoneCash'].includes(o.paymentMethod)
                   ? `<button class="btn-tbl btn-restock" onclick="openVerifyModal('${o._id}')">✓ Verify</button>`
                   : ''}
+                <button class="btn-tbl btn-del" onclick="deleteOrder('${o._id}','${o.orderNumber}')">🗑 Delete</button>
               </div>
             </td>
           </tr>`;
@@ -1642,6 +1643,16 @@ async function updateOrderStatus(orderId, orderStatus, paymentStatus) {
 }
 
 // ── DELETE
+async function deleteOrder(id, orderNumber) {
+  if (!confirm(`Permanently delete order ${orderNumber}?\n\nThis removes the order and its payment proof for good and cannot be undone. (Product stock is NOT restored — Cancel the order first if you need inventory back.)`)) return;
+  try {
+    await API.deleteOrder(id);
+    showToast(`Order ${orderNumber} deleted`, 'info');
+    await loadOrdersTable();
+    await loadDashboard();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
 async function deleteUser(id, name) {
   if (!confirm(`Delete customer "${name}"?`)) return;
   try { await API.deleteUser(id); showToast(`${name} deleted`, 'info'); await loadCustomersTable(); }
