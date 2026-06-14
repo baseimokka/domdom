@@ -20,6 +20,11 @@ logs/
 # Test artifacts
 test_screenshots/
 
+# Ad-hoc dev test scripts (not part of the app)
+test_checkout.js
+test_logo.js
+test_verify.mjs
+
 # OS / editor
 .DS_Store
 Thumbs.db
@@ -27,8 +32,10 @@ Thumbs.db
 .idea/
 .vs/
 
-# Claude Code machine-local settings
-.claude/settings.local.json
+# Claude Code tooling (not part of the app)
+.claude/
+.agents/
+skills-lock.json
 
 # Prisma local
 backend/prisma/*.db
