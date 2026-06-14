@@ -46,6 +46,8 @@ From `server.js` and `.env.example`:
 | `PORT` | No (default 3000) | Express listen port. Keep 3000; Nginx proxies to it. |
 | `CORS_ORIGIN` | **Strongly recommended** | Comma-separated allowed origins. **Empty = reflect any origin (insecure).** Set to your domain. |
 | `TRUST_PROXY` | **Yes (behind Nginx)** | Set to `1` so rate limiting & logging see the real client IP. |
+| `ADMIN_EMAIL` | No (default `admin@domdom.com`) | Email for the admin login created by the production seed (`seed.admin.js`). |
+| `ADMIN_PASSWORD` | ✅ Yes (for prod seed) | Strong admin password. The production seed **refuses to run** without it (min 8 chars). No committed default. |
 
 Generate a production `JWT_SECRET`:
 
@@ -61,6 +63,8 @@ JWT_SECRET=<paste the 96-hex output from the command above>
 DATABASE_URL="mysql://domdom:<STRONG_DB_PASSWORD>@localhost:3306/domdom"
 CORS_ORIGIN=https://yourdomain.com,https://www.yourdomain.com
 TRUST_PROXY=1
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=<a strong, unique admin password>
 ```
 
 ### 1.2 Production configuration checks
@@ -281,10 +285,18 @@ There are **no migration files**, so apply the schema directly with `db push`:
 ```bash
 cd /home/domdom/app/backend
 npx prisma db push          # creates all tables from schema.prisma
-node config/seed.mysql.js   # creates admin + sample products + homepage categories
+node config/seed.admin.js   # PRODUCTION seed: creates ONLY the admin user
 ```
 
-`seed.mysql.js` is idempotent (skips if data already exists). It prints the admin credentials — **log in and change the password immediately**.
+> **Use `seed.admin.js` for production, not `seed.mysql.js`.** The production seed creates
+> only the admin login and reads `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (no committed
+> default password, and **no sample products**). You add your own products through the admin
+> panel after first login.
+>
+> `seed.mysql.js` is the **local-dev** seed — it also inserts 8 sample products and 4 homepage
+> category cards. Don't run it in production unless you want that demo data.
+
+Both seeds are idempotent (skip the admin if it already exists).
 
 ---
 
