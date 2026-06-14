@@ -285,13 +285,13 @@ There are **no migration files**, so apply the schema directly with `db push`:
 ```bash
 cd /home/domdom/app/backend
 npx prisma db push          # creates all tables from schema.prisma
-node config/seed.admin.js   # PRODUCTION seed: creates ONLY the admin user
+node config/seed.admin.js   # PRODUCTION seed: admin user + homepage category cards
 ```
 
 > **Use `seed.admin.js` for production, not `seed.mysql.js`.** The production seed creates
-> only the admin login and reads `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (no committed
-> default password, and **no sample products**). You add your own products through the admin
-> panel after first login.
+> the admin login (from `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env` — no committed default
+> password) and the 4 homepage category cards, but **no sample products**. You add your own
+> products through the admin panel after first login.
 >
 > `seed.mysql.js` is the **local-dev** seed — it also inserts 8 sample products and 4 homepage
 > category cards. Don't run it in production unless you want that demo data.
