@@ -60,6 +60,41 @@ const colorRows = colors => (colors || []).map((c, i) => ({
   sortOrder: i
 }));
 
+// Auto-generate a clean, sequential SKU like `DD-LIP-003`.
+// Reuses the prefix already used by the category (so numbering stays consistent),
+// otherwise derives a 3-letter code from the category slug. The sequence is the
+// highest existing number for that prefix + 1, with a uniqueness guard.
+const SKU_RE = /^(DD-[A-Z0-9]+)-(\d+)$/i;
+async function generateSku(category) {
+  const all = await prisma.product.findMany({ select: { sku: true, category: true } });
+
+  // Adopt the prefix the category already uses, if any of its products have a parseable SKU
+  let prefix = null;
+  for (const p of all) {
+    if (p.category !== category) continue;
+    const m = (p.sku || '').match(SKU_RE);
+    if (m) { prefix = m[1].toUpperCase(); break; }
+  }
+  if (!prefix) {
+    const code = String(category || 'GEN').replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 3).padEnd(3, 'X');
+    prefix = `DD-${code}`;
+  }
+
+  // Next number = highest existing for this prefix + 1 (scan all SKUs to avoid collisions)
+  const taken = new Set();
+  let maxNum = 0;
+  for (const p of all) {
+    const sku = (p.sku || '').toUpperCase();
+    taken.add(sku);
+    const m = sku.match(SKU_RE);
+    if (m && m[1] === prefix) maxNum = Math.max(maxNum, parseInt(m[2], 10));
+  }
+
+  let n = maxNum + 1, sku;
+  do { sku = `${prefix}-${String(n++).padStart(3, '0')}`; } while (taken.has(sku.toUpperCase()));
+  return sku;
+}
+
 // GET /api/products  (public)
 exports.getAll = async (req, res) => {
   try {
@@ -148,6 +183,9 @@ exports.create = async (req, res) => {
     let details = [];
     if (req.body.details) { try { details = JSON.parse(req.body.details); } catch { details = [req.body.details]; } }
 
+    // SKU is auto-generated; an explicit value is still honoured if one is supplied.
+    const finalSku = (sku && sku.trim()) ? sku.trim() : await generateSku(category);
+
     const created = await prisma.product.create({
       data: {
         name, brand: brand || 'DomDom', category,
@@ -157,7 +195,7 @@ exports.create = async (req, res) => {
         emoji: emoji || '✨',
         stock: parseInt(stock) || 0,
         lowStockThreshold: parseInt(lowStockThreshold) || 10,
-        sku: sku || `DD-${Date.now()}`,
+        sku: finalSku,
         description: description || '',
         details,
         active: true,

@@ -584,8 +584,9 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <input class="form-control" type="number" id="p-threshold" placeholder="10" min="1">
         </div>
         <div class="form-group">
-          <label>SKU / Product Code</label>
-          <input class="form-control" type="text" id="p-sku" placeholder="DD-LIP-001">
+          <label>SKU / Product Code <span style="font-size:.72rem;color:#7A6B6B">auto-generated</span></label>
+          <input class="form-control" type="text" id="p-sku" placeholder="Generated automatically on save"
+            readonly style="background:#F4EEE8;color:#7A6B6B;cursor:not-allowed">
         </div>
         <div class="form-group">
           <label>Badge</label>
