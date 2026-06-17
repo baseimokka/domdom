@@ -1269,13 +1269,16 @@ function renderProductsTable(products) {
               <strong>${Number(p.price).toFixed(2)} EGP</strong>
             </td>
             <td><span class="${stockCls}">${p.stock===0?'Out':p.stock}</span></td>
-            <td><span class="status-badge ${p.active?'status-Delivered':'status-Cancelled'}">
+            <td><span class="status-badge ${p.active?'status-Delivered':'status-Cancelled'}"
+              onclick="toggleProductActive('${p._id}','${p.name.replace(/'/g, "\\'")}')"
+              title="Click to ${p.active?'deactivate':'activate'} this product"
+              style="cursor:pointer">
               ${p.active?'Active':'Inactive'}
             </span></td>
             <td><div class="action-btns">
               <button class="btn-tbl btn-edit"   onclick="editProduct('${p._id}')">✏️ Edit</button>
               <button class="btn-tbl btn-restock" onclick="openRestockModal('${p._id}','${p.name}')">📦 Stock</button>
-              <button class="btn-tbl btn-del"     onclick="deleteProduct('${p._id}','${p.name}')">🗑</button>
+              <button class="btn-tbl btn-del"     onclick="deleteProduct('${p._id}','${p.name.replace(/'/g, "\\'")}')" title="Permanently delete">🗑</button>
             </div></td>
           </tr>`;
         }).join('')}
@@ -1685,9 +1688,18 @@ async function deleteUser(id, name) {
   catch (e) { showToast(e.message, 'error'); }
 }
 
+async function toggleProductActive(id, name) {
+  try {
+    const d = await API.toggleProductActive(id);
+    const nowActive = d.product && d.product.active;
+    showToast(`${name} ${nowActive ? 'activated' : 'deactivated'}`, nowActive ? 'success' : 'info');
+    await loadProductsTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
 async function deleteProduct(id, name) {
-  if (!confirm(`Deactivate "${name}"?`)) return;
-  try { await API.deleteProduct(id); showToast(`${name} deactivated`, 'info'); await loadProductsTable(); }
+  if (!confirm(`Permanently delete "${name}"?\n\nThis cannot be undone — the product is removed from the store and your catalogue. Past orders keep their record.`)) return;
+  try { await API.deleteProduct(id); showToast(`${name} permanently deleted`, 'success'); await loadProductsTable(); }
   catch (e) { showToast(e.message, 'error'); }
 }
 

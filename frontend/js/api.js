@@ -76,6 +76,7 @@ const API = {
   updateProduct:  (id, fd) => reqForm('PUT',  `/products/${id}`, fd),
   deleteProduct:  (id)     => req('DELETE', `/products/${id}`, null, true),
   restockProduct: (id, qty)=> req('PATCH',  `/products/${id}/restock`, { quantity: qty }, true),
+  toggleProductActive: (id)=> req('PATCH',  `/products/${id}/toggle-active`, null, true),
 
   // ── Orders
   placeOrder:           (data)     => req('POST',  '/orders', data, true),

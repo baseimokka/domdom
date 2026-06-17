@@ -63,6 +63,7 @@ router.post('/products',                 adminMiddleware, prodCtrl.upload.any(),
 router.put('/products/:id',              adminMiddleware, prodCtrl.upload.any(), prodCtrl.update);
 router.delete('/products/:id',           adminMiddleware, prodCtrl.remove);
 router.patch('/products/:id/restock',    adminMiddleware, prodCtrl.restock);
+router.patch('/products/:id/toggle-active', adminMiddleware, prodCtrl.toggleActive);
 
 // ── SHIPPING CITIES (public — used by checkout page)
 router.get('/shipping/cities', orderCtrl.getCities);

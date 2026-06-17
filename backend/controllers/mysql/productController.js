@@ -249,11 +249,30 @@ exports.update = async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 };
 
-// DELETE /api/products/:id  (admin — soft delete)
+// PATCH /api/products/:id/toggle-active  (admin) — flip a product's active flag
+exports.toggleActive = async (req, res) => {
+  try {
+    const product = await prisma.product.findUnique({ where: { id: req.params.id }, select: { active: true } });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    const updated = await prisma.product.update({
+      where: { id: req.params.id },
+      data: { active: !product.active },
+      include: { colors: true }
+    });
+    res.json({ success: true, product: mapProduct(updated) });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+};
+
+// DELETE /api/products/:id  (admin — PERMANENT delete)
+// Cascade rules in schema.prisma remove the product's colors, wishlist entries,
+// reviews and homepage features; order items keep their snapshot with productId
+// set to NULL, so past orders stay intact. This is irreversible.
 exports.remove = async (req, res) => {
   try {
-    await prisma.product.update({ where: { id: req.params.id }, data: { active: false } }).catch(() => {});
-    res.json({ success: true, message: 'Product deactivated' });
+    const exists = await prisma.product.findUnique({ where: { id: req.params.id }, select: { id: true } });
+    if (!exists) return res.status(404).json({ error: 'Product not found' });
+    await prisma.product.delete({ where: { id: req.params.id } });
+    res.json({ success: true, message: 'Product permanently deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 };
 
