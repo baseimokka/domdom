@@ -64,7 +64,8 @@ function firstImage(p) {
 // ── meta block builders ───────────────────────────────────────────────────
 function buildProductMeta(p) {
   const url   = `${SITE_URL}/product/${slugify(p.name)}-${p._id}`;
-  const img   = absUrl(firstImage(p));
+  const photo = absUrl(firstImage(p));                 // real product photo → JSON-LD (Google supports WebP)
+  const ogImg = `${SITE_URL}/og/product/${p._id}.jpg`; // generated 1200×630 JPEG → social share card
   const desc  = clean(p.description || `Shop ${p.name} at DomDom Store — premium cruelty-free beauty with cash on delivery across Egypt.`);
   const title = `${p.name} — DomDom Store`;
 
@@ -72,7 +73,7 @@ function buildProductMeta(p) {
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: p.name,
-    image: [img],
+    image: [photo],
     description: desc,
     brand: { '@type': 'Brand', name: p.brand || 'DomDom' },
     category: p.category || undefined,
@@ -112,11 +113,15 @@ function buildProductMeta(p) {
 <meta property="og:title" id="og-title" content="${escAttr(title)}">
 <meta property="og:description" id="og-desc" content="${escAttr(desc)}">
 <meta property="og:url" id="og-url" content="${escAttr(url)}">
-<meta property="og:image" id="og-image" content="${escAttr(img)}">
+<meta property="og:image" id="og-image" content="${escAttr(ogImg)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="${escAttr(p.name)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${escAttr(title)}">
 <meta name="twitter:description" content="${escAttr(desc)}">
-<meta name="twitter:image" content="${escAttr(img)}">
+<meta name="twitter:image" content="${escAttr(ogImg)}">
 <script type="application/ld+json" id="product-jsonld">${jsonLd([product, breadcrumb])}</script>`;
 }
 
@@ -133,7 +138,9 @@ function buildCategoryMeta(cat, slug) {
 <meta property="og:title" content="${escAttr(title)}">
 <meta property="og:description" content="${escAttr(desc)}">
 <meta property="og:url" content="${escAttr(url)}">
-<meta property="og:image" content="${SITE_URL}/images/favicon.png">
+<meta property="og:image" content="${SITE_URL}/og/default.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">`;
 }
 

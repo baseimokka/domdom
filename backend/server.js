@@ -7,6 +7,7 @@ const path      = require('path');
 const routes    = require('./routes/index');
 const { legacyRedirects, serveClean, notFound } = require('./middleware/cleanUrls');
 const { sitemapHandler } = require('./middleware/sitemap');
+const { productOgImage, defaultOgImage } = require('./middleware/ogImage');
 
 // ── Fail fast if required secrets are missing — never sign tokens with an
 // undefined secret or start the API without a database connection string.
@@ -70,6 +71,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 //   3) serve pages for clean URLs (/shop, /about, /product/:slug, /category/:slug)
 //   4) static assets        5) API        6) real 404
 app.get('/sitemap.xml', sitemapHandler);
+// Generated Open Graph share images (1200×630 JPEG) for social previews.
+app.get('/og/product/:id.jpg', productOgImage);
+app.get('/og/default.jpg', defaultOgImage);
 app.use(legacyRedirects);
 app.use(serveClean);
 
