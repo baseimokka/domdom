@@ -122,6 +122,13 @@ const API = {
   // ── Newsletter
   subscribe: (email) => req('POST', '/newsletter/subscribe', { email }),
 
+  // ── Contact messages (public submit + admin manage)
+  sendContactMessage:    (data)     => req('POST',   '/contact', data),
+  getContactMessages:    ()         => req('GET',    '/admin/contact-messages', null, true),
+  getUnreadMessageCount: ()         => req('GET',    '/admin/contact-messages/unread-count', null, true),
+  setMessageRead:        (id, read) => req('PATCH',  `/admin/contact-messages/${id}/read`, { read }, true),
+  deleteContactMessage:  (id)       => req('DELETE', `/admin/contact-messages/${id}`, null, true),
+
   // ── Hero Banners (public)
   getActiveBanners: () => req('GET', '/hero-banners'),
 

@@ -196,6 +196,10 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     <div class="nav-item" data-panel="coupons" onclick="switchPanel('coupons')">
       <span class="nav-icon">🎟️</span> Coupons
     </div>
+    <div class="nav-item" data-panel="messages" onclick="switchPanel('messages')">
+      <span class="nav-icon">💌</span> Messages
+      <span id="nav-messages-badge" style="display:none;margin-left:auto;background:#C8506E;color:#fff;border-radius:9999px;font-size:.62rem;font-weight:700;padding:.1rem .45rem;line-height:1.4"></span>
+    </div>
     <div class="nav-section-label">Marketing</div>
     <div class="nav-item" data-panel="hero-banners" onclick="switchPanel('hero-banners')">
       <span class="nav-icon">🎨</span> Hero Banners
@@ -378,6 +382,17 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
       </div>
     </div>
 
+    <!-- MESSAGES -->
+    <div class="panel" id="panel-messages">
+      <div class="table-box">
+        <div class="table-header" style="flex-wrap:wrap;gap:.75rem">
+          <h3>💌 Contact Messages <span id="messages-count" style="font-size:.78rem;color:#7A6B6B"></span></h3>
+          <button class="btn-tbl btn-view" onclick="loadMessagesTable()">↻ Refresh</button>
+        </div>
+        <div id="messages-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+
     <!-- PAYMENTS -->
     <div class="panel" id="panel-payments">
       <div class="table-box">
@@ -414,7 +429,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
     <div class="panel" id="panel-settings">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
         <div class="table-box">
-          <div class="table-header"><h3>⚙️ Payment Settings</h3></div>
+          <div class="table-header"><h3>⚙️ Store Settings</h3></div>
           <div style="padding:1.5rem">
             <div class="form-group">
               <label class="form-group label">InstaPay Account Name</label>
@@ -434,6 +449,11 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
                 placeholder="e.g. Transfer the exact total and upload a clear screenshot…"
                 style="resize:vertical"></textarea>
             </div>
+            <div class="form-group" style="border-top:1px solid #F4EEE8;padding-top:1.1rem;margin-top:.4rem">
+              <label>🚚 Free Shipping Threshold (EGP)
+                <span style="font-size:.72rem;color:#7A6B6B">orders at or above this amount ship free</span></label>
+              <input class="form-control" type="number" id="s-free-ship" min="0" step="1" placeholder="3000">
+            </div>
             <p class="form-error" id="settings-error"></p>
             <button class="btn-tbl btn-view" style="padding:.7rem 1.5rem;font-size:.9rem"
               onclick="saveSettings()">💾 Save Settings</button>
@@ -447,6 +467,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
           <p style="margin-top:.4rem"><strong>InstaPay Phone / Username</strong> — the phone number or username linked to your InstaPay account.</p>
           <p style="margin-top:.4rem"><strong>Vodafone Cash Number</strong> — the Vodafone Cash wallet number.</p>
           <p style="margin-top:.4rem"><strong>Payment Instructions</strong> — an optional note shown below the account details.</p>
+          <p style="margin-top:.4rem"><strong>Free Shipping Threshold</strong> — orders with a subtotal at or above this amount get free shipping. Updates checkout and the storefront banners instantly.</p>
         </div>
       </div>
     </div>
@@ -931,6 +952,7 @@ let allOrders    = [];
 let allUsers     = [];
 let allCategories = [];
 let allCoupons   = [];
+let allMessages  = [];
 let allBanners   = [];
 let editingProductId  = null;
 let editingBannerId   = null;
@@ -972,6 +994,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadDashboard();
   await loadCategoriesForSelect();
+  refreshMessagesBadge();
   document.getElementById('product-form').addEventListener('submit', saveProduct);
 });
 
@@ -1000,7 +1023,7 @@ function switchPanel(name) {
   const titles = {
     dashboard:'Dashboard', products:'Products', categories:'Categories',
     orders:'Orders', payments:'Manual Payments', customers:'Customers',
-    inventory:'Inventory Alerts', coupons:'Coupons',
+    inventory:'Inventory Alerts', coupons:'Coupons', messages:'Contact Messages',
     'hero-banners':'Hero Banners', 'home-categories':'Homepage Categories',
     bestsellers:'Best Sellers', 'new-arrivals':'New Arrivals', settings:'Settings'
   };
@@ -1013,6 +1036,7 @@ function switchPanel(name) {
   if (name === 'customers')       loadCustomersTable();
   if (name === 'inventory')       loadInventoryAlerts();
   if (name === 'coupons')         loadCouponsTable();
+  if (name === 'messages')        loadMessagesTable();
   if (name === 'hero-banners')    loadHeroBannersTable();
   if (name === 'home-categories') loadHomeCategoriesTable();
   if (name === 'bestsellers')     loadFeatureSection('bestsellers');
@@ -2886,6 +2910,84 @@ function openProofLightbox(url) {
 }
 function closeProofLightbox() { document.getElementById('proof-lightbox').classList.add('hidden'); }
 
+// ── CONTACT MESSAGES PANEL
+async function loadMessagesTable() {
+  const wrap = document.getElementById('messages-wrap');
+  wrap.innerHTML = '<div class="spinner"></div>';
+  try {
+    const d = await API.getContactMessages();
+    allMessages = d.messages || [];
+    document.getElementById('messages-count').textContent =
+      `(${d.count} total · ${d.unread} unread)`;
+    updateMessagesBadge(d.unread);
+
+    if (!allMessages.length) {
+      wrap.innerHTML = '<p style="text-align:center;color:#7A6B6B;padding:2rem">No messages yet. The contact form on the storefront will deliver here.</p>';
+      return;
+    }
+    wrap.innerHTML = `<div style="padding:1rem;display:flex;flex-direction:column;gap:.85rem">
+      ${allMessages.map(renderMessageCard).join('')}
+    </div>`;
+  } catch (e) {
+    wrap.innerHTML = `<p style="text-align:center;color:#C8506E;padding:2rem">${esc(e.message)}</p>`;
+  }
+}
+
+function renderMessageCard(m) {
+  const date = new Date(m.createdAt).toLocaleString('en-GB',
+    { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const subj = m.subject ? esc(m.subject) : '<span style="color:#7A6B6B">No subject</span>';
+  const mailHref = `mailto:${encodeURIComponent(m.email)}?subject=${encodeURIComponent('Re: ' + (m.subject || 'Your message to DomDom'))}`;
+  const dot = m.read ? ''
+    : '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#C8506E;margin-right:.45rem;vertical-align:middle"></span>';
+  return `
+    <div style="border:1px solid ${m.read ? '#F4EEE8' : '#F4D6DF'};background:${m.read ? '#fff' : '#FFF7F9'};border-radius:12px;padding:1.1rem 1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600;font-size:.95rem">${dot}${esc(m.name)}</div>
+          <div style="font-size:.8rem;color:#7A6B6B"><a href="${mailHref}" style="color:#C8506E;text-decoration:none">${esc(m.email)}</a></div>
+        </div>
+        <div style="font-size:.74rem;color:#7A6B6B;text-align:right;white-space:nowrap">${date}</div>
+      </div>
+      <div style="margin-top:.6rem;font-size:.78rem;color:#5E4A0A;background:#F0E3B8;display:inline-block;padding:.18rem .6rem;border-radius:8px">${subj}</div>
+      <div style="margin-top:.7rem;font-size:.9rem;line-height:1.6;white-space:pre-wrap;word-break:break-word">${esc(m.message)}</div>
+      <div class="action-btns" style="margin-top:.9rem">
+        <button class="btn-tbl ${m.read ? 'btn-edit' : 'btn-restock'}" onclick="toggleMessageRead('${m._id}', ${m.read})">
+          ${m.read ? '↩ Mark unread' : '✓ Mark read'}
+        </button>
+        <a class="btn-tbl btn-view" href="${mailHref}" style="text-decoration:none">✉️ Reply</a>
+        <button class="btn-tbl btn-del" onclick="deleteMessage('${m._id}')">🗑 Delete</button>
+      </div>
+    </div>`;
+}
+
+function updateMessagesBadge(unread) {
+  const badge = document.getElementById('nav-messages-badge');
+  if (!badge) return;
+  if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-block'; }
+  else            { badge.style.display = 'none'; }
+}
+
+async function refreshMessagesBadge() {
+  try { const d = await API.getUnreadMessageCount(); updateMessagesBadge(d.count); } catch {}
+}
+
+async function toggleMessageRead(id, currentlyRead) {
+  try {
+    await API.setMessageRead(id, !currentlyRead);
+    await loadMessagesTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+async function deleteMessage(id) {
+  if (!confirm('Delete this message permanently? This cannot be undone.')) return;
+  try {
+    await API.deleteContactMessage(id);
+    showToast('Message deleted', 'success');
+    await loadMessagesTable();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
 // ── SETTINGS PANEL
 async function loadSettingsPanel() {
   document.getElementById('settings-error').textContent = '';
@@ -2898,16 +3000,23 @@ async function loadSettingsPanel() {
     document.getElementById('s-instapay-id').value      = map.instapay_identifier   || '';
     document.getElementById('s-vcash-number').value     = map.vodafone_cash_number  || '';
     document.getElementById('s-pay-instructions').value = map.payment_instructions  || '';
+    document.getElementById('s-free-ship').value        = map.free_shipping_threshold || '3000';
   } catch (e) { showToast(e.message, 'error'); }
 }
 
 async function saveSettings() {
   document.getElementById('settings-error').textContent = '';
+  const freeShip = parseInt(document.getElementById('s-free-ship').value, 10);
+  if (!Number.isFinite(freeShip) || freeShip < 0) {
+    document.getElementById('settings-error').textContent = 'Free shipping threshold must be a number ≥ 0.';
+    return;
+  }
   const settings = {
     instapay_account_name: document.getElementById('s-instapay-name').value.trim(),
     instapay_identifier:   document.getElementById('s-instapay-id').value.trim(),
     vodafone_cash_number:  document.getElementById('s-vcash-number').value.trim(),
-    payment_instructions:  document.getElementById('s-pay-instructions').value.trim()
+    payment_instructions:  document.getElementById('s-pay-instructions').value.trim(),
+    free_shipping_threshold: String(freeShip)
   };
   try {
     await API.updateSettings(settings);

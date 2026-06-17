@@ -141,15 +141,30 @@
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout();
-  document.getElementById('contact-form').addEventListener('submit', e => {
+  document.getElementById('contact-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = document.getElementById('contact-submit');
     btn.disabled = true; btn.textContent = 'Sending…';
-    setTimeout(() => {
+
+    const fullName = [
+      document.getElementById('f-name').value.trim(),
+      document.getElementById('f-lname').value.trim()
+    ].filter(Boolean).join(' ');
+
+    try {
+      await API.sendContactMessage({
+        name:    fullName,
+        email:   document.getElementById('f-email').value.trim(),
+        subject: document.getElementById('f-subject').value,
+        message: document.getElementById('f-message').value.trim()
+      });
       document.getElementById('contact-form').style.display = 'none';
       document.getElementById('contact-success').style.display = 'block';
       Toast.show('Message sent! We\'ll be in touch soon 💌', 'success');
-    }, 1200);
+    } catch (err) {
+      Toast.show(err.message || 'Could not send message — please try again', 'error');
+      btn.disabled = false; btn.textContent = 'Send Message 💌';
+    }
   });
 });
 </script>

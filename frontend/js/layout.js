@@ -394,6 +394,18 @@ function initReveal() {
   document.querySelectorAll('.reveal:not(.visible)').forEach(el => obs.observe(el));
 }
 
+// Reflect the admin-configured free-shipping threshold in any storefront banner
+// that opts in with a `.free-ship-amount` span. Defaults stay if the fetch fails.
+async function syncFreeShipping() {
+  const els = document.querySelectorAll('.free-ship-amount');
+  if (!els.length) return;
+  try {
+    const d = await API.getSettings();
+    const n = parseInt(d.settings?.free_shipping_threshold, 10);
+    if (Number.isFinite(n)) els.forEach(el => { el.textContent = n; });
+  } catch {}
+}
+
 async function initLayout() {
   renderNav();
   renderFooter();
@@ -407,6 +419,7 @@ async function initLayout() {
   Cart.bind();
   Cart.render();
   initReveal();
+  syncFreeShipping();
 }
 
 window.getBasePath    = getBasePath;

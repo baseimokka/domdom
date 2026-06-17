@@ -10,7 +10,8 @@ const DEFAULTS = [
     key:   'payment_instructions',
     value: 'Please transfer the exact total amount and upload a clear screenshot as proof of payment.',
     label: 'Payment Instructions'
-  }
+  },
+  { key: 'free_shipping_threshold', value: '3000', label: 'Free Shipping Threshold (EGP)' }
 ];
 const PUBLIC_KEYS = DEFAULTS.map(d => d.key);
 

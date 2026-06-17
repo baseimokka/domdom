@@ -321,7 +321,7 @@ select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3C
 // ── STATE
 let citiesData          = [];
 let currentShippingFee  = 0;
-const FREE_SHIPPING_THRESHOLD = 3000;
+let freeShippingThreshold = 3000;   // overridden by the admin setting on load
 let appliedCoupon       = null; // { code, discountAmount, discountType, discountValue }
 let selectedPaymentMethod = 'COD';
 let proofFile           = null;
@@ -368,6 +368,8 @@ async function loadPaymentSettings() {
   try {
     const d = await API.getSettings();
     paymentSettings = d.settings || {};
+    const t = parseFloat(paymentSettings.free_shipping_threshold);
+    if (Number.isFinite(t) && t >= 0) freeShippingThreshold = t;
   } catch {
     paymentSettings = {};
   }
@@ -480,12 +482,12 @@ function updateShipping() {
   currentShippingFee = fee;
 
   const sub    = Cart.getSubtotal();
-  const isFree = sub >= FREE_SHIPPING_THRESHOLD;
+  const isFree = sub >= freeShippingThreshold;
   const infoBox= document.getElementById('shipping-info-text');
 
   if (isFree) {
     infoBox.style.display = 'block';
-    infoBox.textContent   = `🎉 Free shipping on orders over ${FREE_SHIPPING_THRESHOLD} EGP!`;
+    infoBox.textContent   = `🎉 Free shipping on orders over ${freeShippingThreshold} EGP!`;
   } else if (fee > 0) {
     infoBox.style.display = 'block';
     infoBox.textContent   = `🚚 Delivery to ${option.value}: ${fee} EGP`;
@@ -527,7 +529,7 @@ function loadSummary() {
 
 function updateSummaryTotals() {
   const sub      = Cart.getSubtotal();
-  const isFree   = sub >= FREE_SHIPPING_THRESHOLD;
+  const isFree   = sub >= freeShippingThreshold;
   const ship     = isFree ? 0 : currentShippingFee;
   const discount = appliedCoupon ? appliedCoupon.discountAmount : 0;
   const total    = Math.max(0, sub - discount + ship);

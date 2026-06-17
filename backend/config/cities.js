@@ -19,9 +19,8 @@ const EGYPT_CITIES = [
   { name: 'Damietta',       fee: 120  },
   { name: 'Aswan',          fee: 150  },
   { name: 'Minya',          fee: 130  },
-    { name: 'qalyobia',          fee: 100  },
-    { name: 'qalyob',          fee: 70  },
-
+  { name: 'qalyobia',          fee: 100  },
+  { name: 'qalyob',          fee: 70  },
   { name: 'Damanhour',      fee: 120  },
   { name: 'Beni Suef',      fee: 130  },
   { name: 'Hurghada',       fee: 150  },

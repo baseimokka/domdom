@@ -153,6 +153,7 @@ const mapCoupon           = withId;
 const mapBanner           = withId;
 const mapSetting          = withId;
 const mapHomepageCategory = withId;
+const mapContactMessage   = withId;
 
 function mapReview(r) {
   if (!r) return r;
@@ -180,5 +181,6 @@ module.exports = {
   mapBanner,
   mapSetting,
   mapHomepageCategory,
+  mapContactMessage,
   mapReview
 };

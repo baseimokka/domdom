@@ -37,6 +37,7 @@ const bannerCtrl   = ctrl('heroBannerController');
 const homeCatCtrl  = ctrl('homepageCategoryController');
 const homeFeatCtrl = ctrl('homepageFeatureController');
 const settingCtrl  = ctrl('settingController');
+const contactCtrl  = ctrl('contactController');
 const { authMiddleware, adminMiddleware, optionalAuth } = require('../middleware/auth');
 
 // ── AUTH
@@ -137,6 +138,13 @@ router.put('/admin/homepage/:section/max',             adminMiddleware, homeFeat
 router.patch('/admin/homepage/:section/reorder',       adminMiddleware, homeFeatCtrl.reorderFeatures);
 router.patch('/admin/homepage/:section/:id/toggle',    adminMiddleware, homeFeatCtrl.toggleFeature);
 router.delete('/admin/homepage/:section/:id',          adminMiddleware, homeFeatCtrl.removeFeature);
+
+// ── CONTACT MESSAGES — public submit, admin manage (specific routes BEFORE :id)
+router.post('/contact',                            publicWriteLimiter, contactCtrl.create);
+router.get('/admin/contact-messages',              adminMiddleware,    contactCtrl.getAll);
+router.get('/admin/contact-messages/unread-count', adminMiddleware,    contactCtrl.unreadCount);
+router.patch('/admin/contact-messages/:id/read',   adminMiddleware,    contactCtrl.setRead);
+router.delete('/admin/contact-messages/:id',       adminMiddleware,    contactCtrl.remove);
 
 // ── NEWSLETTER
 router.post('/newsletter/subscribe', publicWriteLimiter, (req, res) => {

@@ -269,6 +269,20 @@ model HomepageFeature {
   @@map("homepage_features")
 }
 
+// ─────────────────────────────────────────── ContactMessage (storefront "Send us a message" form)
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String   @default("")
+  message   String   @db.Text // non-null; controller always supplies a value
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@map("contact_messages")
+}
+
 // ─────────────────────────────────────────── Setting (key/value)
 model Setting {
   id        String   @id @default(cuid())

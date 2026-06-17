@@ -8,6 +8,16 @@ const { FREE_SHIPPING_THRESHOLD, applyMarkup } = require('../../config/pricing')
 const { validateCoupon } = require('./couponController');
 const { mapOrder } = require('../../data/map');
 
+// Free-shipping threshold is admin-configurable via Settings; the pricing
+// constant is the fallback when the setting is missing or invalid.
+async function getFreeShippingThreshold() {
+  try {
+    const s = await prisma.setting.findUnique({ where: { key: 'free_shipping_threshold' } });
+    const n = parseFloat(s?.value);
+    return Number.isFinite(n) && n >= 0 ? n : FREE_SHIPPING_THRESHOLD;
+  } catch { return FREE_SHIPPING_THRESHOLD; }
+}
+
 // ── Multer for payment proof uploads
 const proofStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -144,7 +154,8 @@ exports.create = async (req, res, next) => {
         discountAmount = +Math.min(coupon.discountValue, +subtotal.toFixed(2)).toFixed(2);
     }
 
-    const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : getShippingFee(shippingAddress.city);
+    const freeShipThreshold = await getFreeShippingThreshold();
+    const shippingCost = subtotal >= freeShipThreshold ? 0 : getShippingFee(shippingAddress.city);
     const discountedSubtotal = Math.max(0, +subtotal.toFixed(2) - discountAmount);
     const total              = +(discountedSubtotal + shippingCost).toFixed(2);
     const userId             = req.user?.id || null;
