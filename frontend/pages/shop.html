@@ -2,13 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link rel="icon" type="image/png" href="../images/favicon.png">
-<link rel="apple-touch-icon" href="../images/favicon.png">
-<title>Shop — DomDom Store</title>
+<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="apple-touch-icon" href="/images/favicon.png">
+<!--SSR_META_START-->
+<title>Shop All Products — DomDom Store</title>
+<meta name="description" content="Shop all premium cruelty-free makeup, skincare and beauty products at DomDom Store. Filter by category, price and more. Cash on delivery across Egypt.">
+<link rel="canonical" href="https://domdom-store.com/shop">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DomDom Store">
+<meta property="og:title" content="Shop All Products — DomDom Store">
+<meta property="og:description" content="Premium cruelty-free makeup, skincare & beauty. Cash on delivery across Egypt.">
+<meta property="og:url" content="https://domdom-store.com/shop">
+<meta property="og:image" content="https://domdom-store.com/images/favicon.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--SSR_META_END-->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/nav.css">
-<link rel="stylesheet" href="../css/shop.css">
+<link rel="stylesheet" href="/css/global.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/shop.css">
 </head>
 <body>
 <nav id="main-nav"></nav>
@@ -121,9 +133,9 @@
 <footer id="main-footer"></footer>
 <div id="toast-container"></div>
 
-<script src="../js/api.js"></script>
-<script src="../js/utils.js"></script>
-<script src="../js/layout.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/layout.js"></script>
 <script>
 let allProducts = [];
 let currentView = 'grid';
@@ -150,15 +162,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initLayout();
   await loadCategories();
 
-  // Pre-select category from URL ?cat=lips
-  const cat = new URLSearchParams(window.location.search).get('cat');
+  // Category from the clean path /category/:slug (legacy ?cat= still honoured)
+  const m   = window.location.pathname.match(/^\/category\/([^/]+)/);
+  const cat = m ? decodeURIComponent(m[1]) : new URLSearchParams(window.location.search).get('cat');
   if (cat) {
     const radio = document.querySelector(`input[name="cat"][value="${cat}"]`);
     if (radio) radio.checked = true;
+    applyCategorySeo(cat);
   }
 
   await loadProducts();
 });
+
+// Reflect the active category in the title, H1 and canonical (SEO).
+function applyCategorySeo(slug) {
+  const label = slug.charAt(0).toUpperCase() + slug.slice(1);
+  document.title = `${label} — DomDom Store`;
+  const h1 = document.querySelector('.page-hero .section-title');
+  if (h1) h1.textContent = `Shop ${label}`;
+  const canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) canonical.setAttribute('href', `https://domdom-store.com/category/${slug}`);
+}
 
 // Load categories from MongoDB dynamically
 async function loadCategories() {
@@ -286,10 +310,10 @@ function cardHTML(p) {
   return `<div class="product-card reveal">
     ${badge}
     <button class="wish-btn" onclick="wishToggle('${id}', this)">🤍</button>
-    <div class="product-img" onclick="window.location='product.html?id=${id}'">${thumb}</div>
+    <div class="product-img" onclick="window.location='${productUrl(p)}'">${thumb}</div>
     <div class="product-info">
       <div class="product-brand">${p.brand || 'DomDom'}</div>
-      <div class="product-name" onclick="window.location='product.html?id=${id}'">${p.name}</div>
+      <div class="product-name" onclick="window.location='${productUrl(p)}'">${p.name}</div>
       <div class="stars">
         ${'★'.repeat(Math.round(p.rating||0))}${'☆'.repeat(5-Math.round(p.rating||0))}
         <span>(${p.reviewCount||0})</span>

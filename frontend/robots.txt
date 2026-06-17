@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Private / transactional areas — no SEO value, keep out of the index
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /profile
+Disallow: /orders
+Disallow: /wishlist
+Disallow: /api/
+
+Sitemap: https://domdom-store.com/sitemap.xml

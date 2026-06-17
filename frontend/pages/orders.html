@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link rel="icon" type="image/png" href="../images/favicon.png">
-<link rel="apple-touch-icon" href="../images/favicon.png">
+<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="apple-touch-icon" href="/images/favicon.png">
 <title>My Orders — DomDom Store</title>
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://domdom-store.com/orders">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/nav.css">
+<link rel="stylesheet" href="/css/global.css">
+<link rel="stylesheet" href="/css/nav.css">
 <style>
 .orders-page{padding:7rem 0 5rem;min-height:80vh}
 .orders-empty{text-align:center;padding:5rem 2rem;color:var(--muted)}
@@ -65,7 +67,7 @@
 <nav id="main-nav"></nav>
 <div class="orders-page">
   <div class="container">
-    <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><span>My Orders</span></div>
+    <div class="breadcrumb"><a href="/">Home</a><span>/</span><span>My Orders</span></div>
     <div class="section-header reveal" style="margin-bottom:2rem">
       <p class="section-label">Account</p>
       <h1 class="section-title">My Orders</h1>
@@ -75,9 +77,9 @@
 </div>
 <footer id="main-footer"></footer>
 <div id="toast-container"></div>
-<script src="../js/api.js"></script>
-<script src="../js/utils.js"></script>
-<script src="../js/layout.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/layout.js"></script>
 <script>
 const STATUS_STEPS = ['Pending','Processing','Shipped','Delivered'];
 
@@ -116,7 +118,7 @@ async function loadOrders() {
           <div class="empty-icon">📦</div>
           <h3>No orders yet</h3>
           <p style="margin:.5rem 0 1.5rem">Start shopping to see your orders here!</p>
-          <a href="shop.html" class="btn btn-primary">Shop Now →</a>
+          <a href="/shop" class="btn btn-primary">Shop Now →</a>
         </div>`;
       return;
     }

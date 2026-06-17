@@ -1,24 +1,31 @@
 // frontend/js/layout.js
 
+// Retained for backward compatibility. With clean URLs all links are now
+// root-absolute (/shop, /product/:slug, …) so there is no base prefix.
 function getBasePath() {
-  return window.location.pathname.includes('/pages/') ? '../' : '';
+  return '';
 }
 
 function renderNav() {
-  const base    = getBasePath();
   const nav     = document.getElementById('main-nav');
   if (!nav) return;
-  const current = window.location.pathname.split('/').pop().replace('.html', '') || 'index';
+
+  // Active-nav detection from the clean path (/, /shop, /category/.., /product/..)
+  const path = window.location.pathname;
+  let current = 'index';
+  if (path.startsWith('/shop') || path.startsWith('/category') || path.startsWith('/product')) current = 'shop';
+  else if (path.startsWith('/about'))   current = 'about';
+  else if (path.startsWith('/contact')) current = 'contact';
 
   const links = [
-    { href: `${base}index.html`,         label: 'Home',    id: 'index'   },
-    { href: `${base}pages/shop.html`,    label: 'Shop',    id: 'shop'    },
-    { href: `${base}pages/about.html`,   label: 'About',   id: 'about'   },
-    { href: `${base}pages/contact.html`, label: 'Contact', id: 'contact' },
+    { href: '/',        label: 'Home',    id: 'index'   },
+    { href: '/shop',    label: 'Shop',    id: 'shop'    },
+    { href: '/about',   label: 'About',   id: 'about'   },
+    { href: '/contact', label: 'Contact', id: 'contact' },
   ];
 
   nav.innerHTML = `
-    <a href="${base}index.html" class="nav-logo">Dom<span>Dom</span></a>
+    <a href="/" class="nav-logo">Dom<span>Dom</span></a>
     <ul class="nav-links">
       ${links.map(l =>
         `<li><a href="${l.href}" class="${current === l.id ? 'active' : ''}">${l.label}</a></li>`
@@ -28,7 +35,7 @@ function renderNav() {
       <button class="nav-icon-btn" id="search-btn" title="Search">🔍</button>
 
       <!-- Wishlist icon with badge -->
-      <a href="${base}pages/wishlist.html" class="nav-icon-btn"
+      <a href="/wishlist" class="nav-icon-btn"
         style="position:relative;text-decoration:none" title="Wishlist">
         🤍
         <span id="wishlist-count" style="
@@ -46,7 +53,7 @@ function renderNav() {
         style="display:none;align-items:center;gap:.4rem;position:relative">
 
         <!-- Admin button — only for admins -->
-        <a id="nav-admin-link" href="${base}pages/admin.html"
+        <a id="nav-admin-link" href="/admin"
           style="display:none;align-items:center;gap:.3rem;
             background:var(--charcoal);color:white;
             padding:.4rem .9rem;border-radius:var(--r-full);
@@ -76,11 +83,11 @@ function renderNav() {
             <div class="dd-user-email" style="font-size:.75rem;color:var(--muted)"></div>
           </div>
           <div style="padding:.4rem 0">
-            <a href="${base}pages/profile.html"  class="dd-menu-item">👤 My Profile</a>
-            <a href="${base}pages/orders.html"   class="dd-menu-item">📦 My Orders</a>
-            <a href="${base}pages/wishlist.html" class="dd-menu-item">❤️ My Wishlist</a>
+            <a href="/profile"  class="dd-menu-item">👤 My Profile</a>
+            <a href="/orders"   class="dd-menu-item">📦 My Orders</a>
+            <a href="/wishlist" class="dd-menu-item">❤️ My Wishlist</a>
             <div style="height:1px;background:var(--nude);margin:.4rem 0"></div>
-            <a id="nav-admin-link-dd" href="${base}pages/admin.html"
+            <a id="nav-admin-link-dd" href="/admin"
               class="dd-menu-item" style="display:none;color:var(--rose)">⚙️ Admin Dashboard</a>
             <button id="logout-btn" class="dd-menu-item"
               style="width:100%;text-align:left;background:none;border:none;
@@ -137,7 +144,6 @@ function renderNav() {
 }
 
 function renderFooter() {
-  const base   = getBasePath();
   const footer = document.getElementById('main-footer');
   if (!footer) return;
   footer.innerHTML = `
@@ -175,37 +181,37 @@ function renderFooter() {
       <div class="footer-col">
         <h4>Shop</h4>
         <ul>
-          <li><a href="${base}pages/shop.html">All Products</a></li>
-          <li><a href="${base}pages/shop.html?cat=lips">Lips</a></li>
-          <li><a href="${base}pages/shop.html?cat=eyes">Eyes</a></li>
-          <li><a href="${base}pages/shop.html?cat=face">Face</a></li>
-          <li><a href="${base}pages/shop.html?cat=skincare">Skincare</a></li>
-          <li><a href="${base}pages/shop.html?cat=body">Body</a></li>
-          <li><a href="${base}pages/shop.html?cat=perfumes">Perfumes</a></li>
+          <li><a href="/shop">All Products</a></li>
+          <li><a href="/category/lips">Lips</a></li>
+          <li><a href="/category/eyes">Eyes</a></li>
+          <li><a href="/category/face">Face</a></li>
+          <li><a href="/category/skincare">Skincare</a></li>
+          <li><a href="/category/body">Body</a></li>
+          <li><a href="/category/perfumes">Perfumes</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Help</h4>
         <ul>
-          <li><a href="${base}pages/contact.html">Contact Us</a></li>
-          <li><a href="#">Shipping & Returns</a></li>
-          <li><a href="${base}pages/orders.html">Track Order</a></li>
-          <li><a href="#">FAQ</a></li>
+          <li><a href="/contact">Contact Us</a></li>
+          <li><a href="/contact#faq">Shipping & Returns</a></li>
+          <li><a href="/orders">Track Order</a></li>
+          <li><a href="/contact#faq">FAQ</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>About</h4>
         <ul>
-          <li><a href="${base}pages/about.html">Our Story</a></li>
-          <li><a href="#">Sustainability</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Press</a></li>
+          <li><a href="/about">Our Story</a></li>
+          <li><a href="/privacy-policy">Privacy Policy</a></li>
+          <li><a href="/terms">Terms of Service</a></li>
+          <li><a href="/contact">Press</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom container">
       <span>© 2025 DomDom Store. All rights reserved.</span>
-      <span>Privacy Policy · Terms · Cookies</span>
+      <span><a href="/privacy-policy">Privacy Policy</a> · <a href="/terms">Terms</a> · <a href="/privacy-policy#cookies">Cookies</a></span>
     </div>`;
 }
 
@@ -289,7 +295,6 @@ function renderAuthModal() {
 
 function renderSearchOverlay() {
   if (document.getElementById('search-overlay')) return;
-  const base = getBasePath();
   document.body.insertAdjacentHTML('beforeend', `
     <div class="search-overlay hidden" id="search-overlay">
       <div class="search-box">
@@ -339,7 +344,7 @@ function renderSearchOverlay() {
                 style="width:100%;height:100%;object-fit:cover">`
             : `<span>${p.emoji}</span>`;
           return `<div class="search-result-item" onclick="
-              window.location='${base}pages/product.html?id=${id}';
+              window.location='${productUrl(p)}';
               document.getElementById('search-overlay').classList.add('hidden')">
             <div class="search-result-thumb">${thumb}</div>
             <div>
@@ -363,18 +368,17 @@ function syncAdminLinks() {
 }
 
 function syncMobileAuth() {
-  const base    = getBasePath();
   const el      = document.getElementById('mobile-auth-links');
   if (!el) return;
   const user    = Auth.getUser();
   if (user) {
     const adminLink = Auth.isAdmin()
-      ? `<a href="${base}pages/admin.html" style="color:var(--rose)">⚙️ Admin Dashboard</a>`
+      ? `<a href="/admin" style="color:var(--rose)">⚙️ Admin Dashboard</a>`
       : '';
     el.innerHTML = `
-      <a href="${base}pages/profile.html">👤 My Profile</a>
-      <a href="${base}pages/orders.html">📦 My Orders</a>
-      <a href="${base}pages/wishlist.html">❤️ My Wishlist</a>
+      <a href="/profile">👤 My Profile</a>
+      <a href="/orders">📦 My Orders</a>
+      <a href="/wishlist">❤️ My Wishlist</a>
       ${adminLink}
       <a onclick="Auth.logout()" style="cursor:pointer;color:var(--rose)">🚪 Logout</a>`;
   } else {

@@ -169,6 +169,42 @@ function getProductImage(product) {
   return product.colors?.[0]?.images?.[0] || null;
 }
 
+// ── Clean-URL helpers ──────────────────────────────────────────────────────
+// Public site origin, used to build absolute canonical / Open Graph URLs.
+const SITE_URL = 'https://domdom-store.com';
+
+// Slugify must match the backend (backend/middleware/sitemap.js) so the URLs a
+// page advertises as canonical are exactly the ones in sitemap.xml.
+function slugify(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // strip accents
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+}
+
+// Product id is a cuid (no hyphens), so a "<name>-<id>" slug is reversible:
+// the id is always the final hyphen-separated segment.
+function productId(p)   { return String(p._id || p.id || ''); }
+function productSlug(p) {
+  const base = slugify(p.name);
+  const id   = productId(p);
+  return base ? `${base}-${id}` : id;
+}
+function productUrl(p)  { return `/product/${productSlug(p)}`; }
+
+// Parse the product id back out of a /product/:slug path segment.
+function parseProductId(slug) {
+  const s = String(slug || '').split('/').pop();
+  const parts = s.split('-');
+  return parts[parts.length - 1];
+}
 
 window.API = API;
 window.getProductImage = getProductImage;
+window.SITE_URL = SITE_URL;
+window.slugify = slugify;
+window.productSlug = productSlug;
+window.productUrl = productUrl;
+window.parseProductId = parseProductId;

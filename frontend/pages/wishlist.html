@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link rel="icon" type="image/png" href="../images/favicon.png">
-<link rel="apple-touch-icon" href="../images/favicon.png">
+<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="apple-touch-icon" href="/images/favicon.png">
 <title>My Wishlist — DomDom Store</title>
+<meta name="robots" content="noindex,follow">
+<link rel="canonical" href="https://domdom-store.com/wishlist">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/nav.css">
-<link rel="stylesheet" href="../css/shop.css">
+<link rel="stylesheet" href="/css/global.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/shop.css">
 <style>
 .wishlist-page { padding: 7rem 0 5rem; min-height: 80vh; }
 .wishlist-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
@@ -34,7 +36,7 @@
 <div class="wishlist-page">
   <div class="container">
     <div class="breadcrumb">
-      <a href="../index.html">Home</a><span>/</span><span>My Wishlist</span>
+      <a href="/">Home</a><span>/</span><span>My Wishlist</span>
     </div>
 
     <div class="wishlist-header">
@@ -52,9 +54,9 @@
 <footer id="main-footer"></footer>
 <div id="toast-container"></div>
 
-<script src="../js/api.js"></script>
-<script src="../js/utils.js"></script>
-<script src="../js/layout.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/layout.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout();
@@ -93,7 +95,7 @@ function renderWishlist(products) {
         <div class="empty-icon">🤍</div>
         <h3>Your wishlist is empty</h3>
         <p style="margin:.5rem 0 1.5rem">Save products you love to buy them later.</p>
-        <a href="shop.html" class="btn btn-primary">Browse Products →</a>
+        <a href="/shop" class="btn btn-primary">Browse Products →</a>
       </div>`;
     return;
   }
@@ -123,10 +125,10 @@ function wishlistCard(p) {
   return `<div class="product-card reveal" id="wish-card-${id}">
     ${badge}
     <button class="remove-wish-btn" onclick="removeFromWishlist('${id}')" title="Remove from wishlist">✕</button>
-    <div class="product-img" onclick="window.location='product.html?id=${id}'">${thumb}</div>
+    <div class="product-img" onclick="window.location='${productUrl(p)}'">${thumb}</div>
     <div class="product-info">
       <div class="product-brand">${p.brand || 'DomDom'}</div>
-      <div class="product-name" onclick="window.location='product.html?id=${id}'">${p.name}</div>
+      <div class="product-name" onclick="window.location='${productUrl(p)}'">${p.name}</div>
       <div class="stars">
         ${'★'.repeat(Math.round(p.rating||0))}${'☆'.repeat(5-Math.round(p.rating||0))}
         <span>(${p.reviewCount||0})</span>
@@ -166,7 +168,7 @@ function refreshCount() {
         <div class="empty-icon">🤍</div>
         <h3>Your wishlist is empty</h3>
         <p style="margin:.5rem 0 1.5rem">Save products you love to buy them later.</p>
-        <a href="shop.html" class="btn btn-primary">Browse Products →</a>
+        <a href="/shop" class="btn btn-primary">Browse Products →</a>
       </div>`;
   } else {
     label.textContent = `${remaining} item${remaining !== 1 ? 's' : ''}`;

@@ -64,7 +64,7 @@ const Auth = (() => {
     closeAccountDropdown();
     if (redirect) {
       Toast.show('Logged out successfully', 'info');
-      setTimeout(() => window.location.href = getBasePath() + 'index.html', 800);
+      setTimeout(() => window.location.href = '/', 800);
     }
   }
 
@@ -363,8 +363,7 @@ const Cart = (() => {
   function goCheckout() {
     if (!items.length) return Toast.show('Your cart is empty', 'error');
     close();
-    const base = window.location.pathname.includes('/pages/') ? '' : 'pages/';
-    window.location.href = `${base}checkout.html`;
+    window.location.href = '/checkout';
   }
 
   function bind() {

@@ -2,13 +2,25 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<link rel="icon" type="image/png" href="../images/favicon.png">
-<link rel="apple-touch-icon" href="../images/favicon.png">
+<link rel="icon" type="image/png" href="/images/favicon.png">
+<link rel="apple-touch-icon" href="/images/favicon.png">
+<!--SSR_META_START-->
 <title>Product — DomDom Store</title>
+<meta name="description" id="meta-description" content="Shop premium cruelty-free beauty at DomDom Store. Cash on delivery across Egypt.">
+<link rel="canonical" id="canonical-link" href="https://domdom-store.com/shop">
+<meta name="robots" content="index,follow">
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="DomDom Store">
+<meta property="og:title" id="og-title" content="DomDom Store">
+<meta property="og:description" id="og-desc" content="Premium cruelty-free beauty. Cash on delivery across Egypt.">
+<meta property="og:url" id="og-url" content="https://domdom-store.com/shop">
+<meta property="og:image" id="og-image" content="https://domdom-store.com/images/favicon.png">
+<meta name="twitter:card" content="summary_large_image">
+<!--SSR_META_END-->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../css/global.css">
-<link rel="stylesheet" href="../css/nav.css">
-<link rel="stylesheet" href="../css/shop.css">
+<link rel="stylesheet" href="/css/global.css">
+<link rel="stylesheet" href="/css/nav.css">
+<link rel="stylesheet" href="/css/shop.css">
 <style>
 @keyframes galleryFadeIn{from{opacity:0}to{opacity:1}}
 .gallery-main img{animation:galleryFadeIn .28s ease}
@@ -24,8 +36,8 @@
 <div class="container" style="padding-top:6rem;padding-bottom:4rem">
 
   <div class="breadcrumb" id="breadcrumb">
-    <a href="../index.html">Home</a><span>/</span>
-    <a href="shop.html">Shop</a><span>/</span>
+    <a href="/">Home</a><span>/</span>
+    <a href="/shop">Shop</a><span>/</span>
     <span id="bc-name">Loading…</span>
   </div>
 
@@ -78,9 +90,9 @@
 <footer id="main-footer"></footer>
 <div id="toast-container"></div>
 
-<script src="../js/api.js"></script>
-<script src="../js/utils.js"></script>
-<script src="../js/layout.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/layout.js"></script>
 <script>
 // ── State
 let product          = null;
@@ -92,12 +104,13 @@ let selectedRating   = 0;
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout();
 
-  // ── Get product ID from URL query string
-  const urlParams = new URLSearchParams(window.location.search);
-  const productId = urlParams.get('id');
+  // ── Product id from the clean path /product/:slug (slug = name-<id>);
+  // fall back to the legacy ?id= query for any old in-flight links.
+  const productId = parseProductId(window.location.pathname)
+    || new URLSearchParams(window.location.search).get('id');
 
   if (!productId) {
-    showError('No product ID in URL. <a href="shop.html">Back to Shop</a>');
+    showError('No product specified. <a href="/shop">Back to Shop</a>');
     return;
   }
 
@@ -113,6 +126,7 @@ async function loadProduct(id) {
     // Update page meta
     document.title = `${product.name} — DomDom Store`;
     document.getElementById('bc-name').textContent = product.name;
+    applyProductSeo(product);
 
     // Render sections
     renderDetail(product);
@@ -124,13 +138,86 @@ async function loadProduct(id) {
 
     initReveal();
   } catch (err) {
-    showError(`Product not found. <a href="shop.html" style="color:var(--rose)">Back to Shop</a>`);
+    showError(`Product not found. <a href="/shop" style="color:var(--rose)">Back to Shop</a>`);
   }
 }
 
 function showError(html) {
   document.getElementById('product-detail-area').innerHTML =
     `<p style="text-align:center;color:var(--muted);padding:5rem 2rem">${html}</p>`;
+}
+
+// ── Per-product SEO: canonical, Open Graph, JSON-LD, and a pretty-URL upgrade.
+// The page may be reached at /product/<id> (e.g. from a 301 of an old ?id= link)
+// or /product/<name>-<id>; either way we settle on the canonical slug URL.
+function absUrl(u) {
+  if (!u) return `${SITE_URL}/images/favicon.png`;
+  return /^https?:\/\//i.test(u) ? u : `${SITE_URL}${u.startsWith('/') ? '' : '/'}${u}`;
+}
+
+function applyProductSeo(p) {
+  const cleanPath = productUrl(p);                 // /product/<name>-<id>
+  const url       = `${SITE_URL}${cleanPath}`;
+  const img       = absUrl(getProductImage(p));
+  const desc      = (p.description || `Shop ${p.name} at DomDom Store — premium cruelty-free beauty with cash on delivery across Egypt.`)
+                      .replace(/\s+/g, ' ').trim().slice(0, 160);
+
+  // Upgrade the address bar to the canonical slug URL without a reload/redirect.
+  if (window.location.pathname !== cleanPath) {
+    history.replaceState(null, '', cleanPath + window.location.search);
+  }
+
+  const set = (id, attr, val) => { const el = document.getElementById(id); if (el) el.setAttribute(attr, val); };
+  set('canonical-link', 'href', url);
+  set('meta-description', 'content', desc);
+  set('og-title', 'content', `${p.name} — DomDom Store`);
+  set('og-desc', 'content', desc);
+  set('og-url', 'content', url);
+  set('og-image', 'content', img);
+
+  const ld = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: p.name,
+    image: [img],
+    description: desc,
+    brand: { '@type': 'Brand', name: p.brand || 'DomDom' },
+    category: p.category || undefined,
+    sku: p.sku || undefined,
+    offers: {
+      '@type': 'Offer',
+      url,
+      priceCurrency: 'EGP',
+      price: Number(p.finalPrice).toFixed(2),
+      availability: (p.stock > 0) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+    }
+  };
+  if (p.reviewCount > 0 && p.rating > 0) {
+    ld.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: Number(p.rating).toFixed(1),
+      reviewCount: p.reviewCount
+    };
+  }
+
+  const breadcrumb = {
+    '@context': 'https://schema.org/',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Shop', item: `${SITE_URL}/shop` },
+      { '@type': 'ListItem', position: 3, name: p.name, item: url }
+    ]
+  };
+
+  let tag = document.getElementById('product-jsonld');
+  if (!tag) {
+    tag = document.createElement('script');
+    tag.type = 'application/ld+json';
+    tag.id = 'product-jsonld';
+    document.head.appendChild(tag);
+  }
+  tag.textContent = JSON.stringify([ld, breadcrumb]);
 }
 
 // ── Get images for a given color index
@@ -495,10 +582,10 @@ function renderRelated(products) {
       : `<span class="no-photo">${p.emoji || '✨'}</span>`;
 
     return `<div class="product-card reveal">
-      <div class="product-img" onclick="window.location='product.html?id=${id}'">${thumb}</div>
+      <div class="product-img" onclick="window.location='${productUrl(p)}'">${thumb}</div>
       <div class="product-info">
         <div class="product-brand">${p.brand || 'DomDom'}</div>
-        <div class="product-name" onclick="window.location='product.html?id=${id}'">${p.name}</div>
+        <div class="product-name" onclick="window.location='${productUrl(p)}'">${p.name}</div>
         <div class="stars">
           ${'★'.repeat(Math.round(p.rating || 0))}
           <span>(${p.reviewCount || 0})</span>

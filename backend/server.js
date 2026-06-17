@@ -5,6 +5,8 @@ const cors      = require('cors');
 const helmet    = require('helmet');
 const path      = require('path');
 const routes    = require('./routes/index');
+const { legacyRedirects, serveClean, notFound } = require('./middleware/cleanUrls');
+const { sitemapHandler } = require('./middleware/sitemap');
 
 // ── Fail fast if required secrets are missing — never sign tokens with an
 // undefined secret or start the API without a database connection string.
@@ -63,7 +65,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve uploaded product images
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve frontend static files
+// ── SEO + clean URLs. Order matters:
+//   1) DB-driven sitemap   2) 301 legacy redirects (.html, /pages/, ?cat, ?id)
+//   3) serve pages for clean URLs (/shop, /about, /product/:slug, /category/:slug)
+//   4) static assets        5) API        6) real 404
+app.get('/sitemap.xml', sitemapHandler);
+app.use(legacyRedirects);
+app.use(serveClean);
+
+// Serve frontend static files (css, js, images, robots.txt, favicon)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 // ── API routes
@@ -74,17 +84,14 @@ app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', time: new Date() })
 );
 
-// ── Global error handler — MUST come before SPA fallback
-// Must have 4 params for Express to recognise it as an error handler
+// ── 404 — real Not Found for unmatched routes (replaces the old soft-404 that
+// returned the homepage with HTTP 200 for every unknown URL).
+app.use(notFound);
+
+// ── Global error handler — MUST be registered last (4 params for Express).
 app.use((err, req, res, next) => {
   console.error('Server error:', err.stack || err.message);
   res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
-});
-
-// ── SPA fallback — LAST, only for non-API routes
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 app.listen(PORT, () => {
