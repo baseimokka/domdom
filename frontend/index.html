@@ -296,7 +296,7 @@ async function loadHomeCategories() {
     // fires — show them immediately, then enable the looping slider.
     grid.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
     initReveal();
-    initLoopCarousel('cat-grid');
+    initMarquee('cat-grid');
   } catch (e) {
     document.getElementById('categories-section').style.display = 'none';
   }
@@ -340,17 +340,18 @@ async function loadHomeSection(section, domKey) {
     // observer never fires — show them immediately so none stay invisible.
     grid.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
     initReveal();
-    initLoopCarousel(`${domKey}-grid`);
+    initMarquee(`${domKey}-grid`);
   } catch (e) {
     wrapper.style.display = 'none';
   }
 }
 
-// Seamless infinite-loop carousel: the real cards are triplicated (clones on
-// each side, aria-hidden) and the scroll position is snapped back into the
-// middle copy whenever scrolling stops — so the end connects to the start in
-// both directions, for arrows and native touch swipe alike.
-function initLoopCarousel(trackId) {
+// Continuous auto-scroll marquee: the card set is cloned enough times that the
+// row can drift left forever, and the scroll position is wrapped by exactly one
+// set width — so the last card flows straight into the first with no visible
+// jump (continuous, not a snap-back loop). Motion pauses on hover / touch and
+// while the tab is hidden, and is disabled for prefers-reduced-motion.
+function initMarquee(trackId, pxPerSec = 40) {
   const track = document.getElementById(trackId);
   if (!track) return;
   const carousel = track.closest('.prod-carousel');
@@ -363,12 +364,23 @@ function initLoopCarousel(trackId) {
   const originals = [...track.children];
   if (!originals.length) { carousel.classList.add('pc-static'); return; }
 
-  // If the real cards already fit, there's nothing to loop — show a static row
+  // If the real cards already fit, there's nothing to scroll — static row
   if (track.scrollWidth <= track.clientWidth + 4) {
     carousel.classList.add('pc-static');
     return;
   }
   carousel.classList.remove('pc-static');
+
+  const step = () => Math.max(track.clientWidth * 0.8, 220);
+
+  // Respect reduced motion: keep a simple paged scroll, no autoplay or clones
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    prev?.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next?.addEventListener('click', () => track.scrollBy({ left:  step(), behavior: 'smooth' }));
+    return;
+  }
+
+  track.classList.add('pc-marquee');   // turns off scroll-snap for smooth drift
 
   const cloneOf = (node) => {
     const c = node.cloneNode(true);
@@ -377,53 +389,75 @@ function initLoopCarousel(trackId) {
     c.querySelectorAll('a,button,input,select,textarea,[tabindex]').forEach(el => el.setAttribute('tabindex', '-1'));
     return c;
   };
-  // Layout: [clones | originals (middle) | clones]
-  originals.map(cloneOf).reverse().forEach(c => track.insertBefore(c, track.firstChild));
-  originals.map(cloneOf).forEach(c => track.appendChild(c));
+  // Append whole copies until there's >= 2 set-widths of runway ahead of the
+  // band we scroll within, so wrapping back by one set is always seamless.
+  const oneSet = track.scrollWidth;
+  const copies = Math.ceil(track.clientWidth / oneSet) + 2;
+  for (let i = 0; i < copies; i++) originals.map(cloneOf).forEach(c => track.appendChild(c));
 
-  let setWidth = 0;
-  const measure   = () => { setWidth = track.scrollWidth / 3; };
-  const recenter  = () => { track.scrollLeft = setWidth; };
-  // Keep the viewport inside the middle copy once scrolling settles
-  const normalize = () => {
-    if (setWidth <= 0) return;
-    if (track.scrollLeft >= setWidth * 2 - 1) track.scrollLeft -= setWidth;
-    else if (track.scrollLeft < setWidth - 1) track.scrollLeft += setWidth;
+  // Set stride = horizontal distance from the 1st card to the matching card in
+  // the next copy (cancels container padding, so the seam never drifts).
+  let setWidth = oneSet;
+  const measure = () => {
+    const a = track.children[0];
+    const b = track.children[originals.length];
+    if (a && b && b.offsetLeft > a.offsetLeft) setWidth = b.offsetLeft - a.offsetLeft;
+  };
+  const wrap = () => {
+    const r = ((track.scrollLeft % setWidth) + setWidth) % setWidth;
+    track.scrollLeft = r + setWidth;   // re-seat into the middle band
   };
 
-  measure(); recenter();
+  measure();
+  track.scrollLeft = setWidth;
+  let pos = track.scrollLeft;
 
-  const step = () => Math.max(track.clientWidth * 0.85, 220);
-  // Arrow step: pre-shift by one copy if the upcoming move would cross out of
-  // the middle copy, so a smooth scroll can never reach the cloned dead-ends.
-  const go = (dir) => {
-    const s = step();
-    if (dir > 0 && track.scrollLeft + s >= setWidth * 2) track.scrollLeft -= setWidth;
-    if (dir < 0 && track.scrollLeft - s <  setWidth)     track.scrollLeft += setWidth;
-    track.scrollBy({ left: dir * s, behavior: 'smooth' });
-  };
-  prev?.addEventListener('click', () => go(-1));
-  next?.addEventListener('click', () => go(1));
+  let paused = false, lastT = 0, raf;
+  const pause  = () => { paused = true; };
+  const resume = () => { wrap(); pos = track.scrollLeft; lastT = 0; paused = false; };
 
-  let stopTimer;
-  track.addEventListener('scroll', () => {
-    // Hard-edge guard for fast touch flings (snap before the user sees a wall)
-    if (setWidth > 0) {
-      const maxLeft = track.scrollWidth - track.clientWidth;
-      if (track.scrollLeft <= 1)            track.scrollLeft += setWidth;
-      else if (track.scrollLeft >= maxLeft - 1) track.scrollLeft -= setWidth;
+  function frame(t) {
+    if (!paused && document.visibilityState === 'visible') {
+      if (lastT) {
+        const dt = Math.min((t - lastT) / 1000, 0.05);   // clamp tab-switch gaps
+        pos += pxPerSec * dt;
+        if (pos >= setWidth * 2) pos -= setWidth;         // seamless wrap
+        track.scrollLeft = pos;
+      }
+      lastT = t;
+    } else {
+      lastT = 0;
     }
-    clearTimeout(stopTimer);
-    stopTimer = setTimeout(normalize, 80);   // tidy recenter once it settles
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+
+  // Pause while the user is reading/interacting with the row
+  carousel.addEventListener('mouseenter', pause);
+  carousel.addEventListener('mouseleave', resume);
+
+  let settle;
+  track.addEventListener('touchstart', pause, { passive: true });
+  track.addEventListener('touchend', () => {
+    clearTimeout(settle);
+    settle = setTimeout(resume, 600);   // let momentum finish, then re-seat
   }, { passive: true });
 
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => { measure(); recenter(); }, 150);
-  });
-  // Re-measure once images have loaded (card widths can shift)
-  setTimeout(() => { measure(); normalize(); }, 500);
+  // Optional manual nudge (pauses, glides one page, then resumes the drift)
+  const nudge = (dir) => {
+    pause();
+    clearTimeout(settle);
+    track.scrollBy({ left: dir * step(), behavior: 'smooth' });
+    settle = setTimeout(resume, 700);
+  };
+  prev?.addEventListener('click', () => nudge(-1));
+  next?.addEventListener('click', () => nudge(1));
+
+  // Re-measure when layout or late-loading images shift card widths
+  let rz;
+  const remeasure = () => { measure(); wrap(); pos = track.scrollLeft; };
+  window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(remeasure, 150); });
+  setTimeout(remeasure, 600);
 }
 
 function productCardHTML(p) {
