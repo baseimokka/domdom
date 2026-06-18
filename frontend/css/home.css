@@ -55,9 +55,9 @@
 .pc-track{display:flex;gap:1.6rem;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:.6rem .25rem 1.2rem}
 .pc-track::-webkit-scrollbar{display:none}
 .pc-track>*{scroll-snap-align:start}
-/* Marquee variant: continuous auto-scroll — snap would fight the drift */
-.pc-marquee{scroll-snap-type:none;scroll-behavior:auto}
-.pc-marquee>*{scroll-snap-align:none}
+/* Looping carousel: disable native snap so re-seating by whole sets is invisible */
+.pc-loop{scroll-snap-type:none;scroll-behavior:auto}
+.pc-loop>*{scroll-snap-align:none}
 .pc-arrow{position:absolute;top:calc(50% - .3rem);transform:translateY(-50%);z-index:5;width:46px;height:46px;border-radius:50%;background:#fff;border:1px solid rgba(42,35,35,.08);box-shadow:0 6px 18px rgba(42,35,35,.14);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--charcoal);transition:background .2s ease,opacity .2s ease,transform .2s ease}
 .pc-arrow:hover:not(:disabled){background:var(--cream)}
 .pc-arrow:active:not(:disabled){transform:translateY(-50%) scale(.94)}
