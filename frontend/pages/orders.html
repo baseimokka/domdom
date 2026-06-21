@@ -76,6 +76,21 @@
   </div>
 </div>
 <footer id="main-footer"></footer>
+
+<!-- In-page confirm dialog (replaces native confirm() for order cancellation) -->
+<div class="modal-overlay hidden" id="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal" style="max-width:400px;text-align:center;padding:2.25rem 2rem">
+    <div style="font-size:2.5rem;margin-bottom:.5rem">⚠️</div>
+    <h3 id="confirm-title" style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:.6rem"></h3>
+    <p id="confirm-message" style="color:var(--muted);font-size:.9rem;line-height:1.55;margin-bottom:1.75rem"></p>
+    <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap">
+      <button id="confirm-cancel" class="btn"
+        style="background:var(--cream);color:var(--charcoal);border:1.5px solid var(--nude)"></button>
+      <button id="confirm-ok" class="btn" style="background:var(--rose);color:#fff"></button>
+    </div>
+  </div>
+</div>
+
 <div id="toast-container"></div>
 <script src="/js/api.js"></script>
 <script src="/js/utils.js"></script>
@@ -116,8 +131,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadOrders();
 });
 
+// Styled in-page confirm — returns a Promise<boolean>. Replaces native confirm().
+function confirmDialog({ title, message, confirmText = 'Confirm', cancelText = 'Cancel' }) {
+  return new Promise(resolve => {
+    const overlay   = document.getElementById('confirm-modal');
+    const okBtn     = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    document.getElementById('confirm-title').textContent   = title;
+    document.getElementById('confirm-message').textContent = message;
+    okBtn.textContent     = confirmText;
+    cancelBtn.textContent = cancelText;
+    overlay.classList.remove('hidden');
+    okBtn.focus();
+
+    function cleanup(result) {
+      overlay.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onBackdrop);
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onOk()        { cleanup(true); }
+    function onCancel()    { cleanup(false); }
+    function onBackdrop(e) { if (e.target === overlay) cleanup(false); }
+    function onKey(e)      { if (e.key === 'Escape') cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onBackdrop);
+    document.addEventListener('keydown', onKey);
+  });
+}
+
 async function cancelOrder(id, orderNumber) {
-  if (!confirm(`Cancel order ${orderNumber}?\n\nThis cannot be undone.`)) return;
+  const ok = await confirmDialog({
+    title:       'Cancel this order?',
+    message:     `Order ${orderNumber} will be cancelled. This cannot be undone.`,
+    confirmText: 'Yes, cancel order',
+    cancelText:  'Keep order'
+  });
+  if (!ok) return;
   try {
     await API.cancelOrder(id);
     Toast.show('Order cancelled successfully', 'success');
