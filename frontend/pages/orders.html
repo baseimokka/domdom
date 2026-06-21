@@ -83,6 +83,24 @@
 <script>
 const STATUS_STEPS = ['Pending','Processing','Shipped','Delivered'];
 
+// Payment method label + icon (must match the methods stored at checkout)
+const PAYMENT_METHODS = {
+  COD:          { label: 'Cash on Delivery', icon: '💵' },
+  InstaPay:     { label: 'InstaPay',          icon: '📱' },
+  VodafoneCash: { label: 'Vodafone Cash',     icon: '📲' }
+};
+
+// Payment status: friendly label + colour. COD uses Pending/Paid/Refunded;
+// manual payments (InstaPay/Vodafone) use PendingVerification/Verified/Rejected.
+const PAYMENT_STATUS = {
+  Pending:             { label: 'Pending',               color: 'var(--gold)' },
+  Paid:                { label: 'Paid',                  color: 'var(--success)' },
+  Refunded:            { label: 'Refunded',             color: 'var(--muted)' },
+  PendingVerification: { label: 'Awaiting Verification', color: 'var(--gold)' },
+  Verified:            { label: 'Verified',             color: 'var(--success)' },
+  Rejected:            { label: 'Rejected',             color: 'var(--rose-dark)' }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout();
   if (!Auth.isLoggedIn()) {
@@ -135,6 +153,8 @@ async function loadOrders() {
 function orderCard(o) {
   const stepIdx   = STATUS_STEPS.indexOf(o.orderStatus);
   const cancelled = o.orderStatus === 'Cancelled';
+  const pm        = PAYMENT_METHODS[o.paymentMethod] || PAYMENT_METHODS.COD;
+  const ps        = PAYMENT_STATUS[o.paymentStatus]  || { label: o.paymentStatus, color: 'var(--gold)' };
 
   const tracker = cancelled
     ? `<div class="status-tracker" style="justify-content:center">
@@ -184,9 +204,9 @@ function orderCard(o) {
         <div class="order-info-row">
           <span>📍 ${o.shippingAddress.city}${o.shippingAddress.area ? ', ' + o.shippingAddress.area : ''}</span>
           <span>🚚 Shipping: ${o.shippingCost === 0 ? 'Free' : o.shippingCost + ' EGP'}</span>
-          <span>💵 Cash on Delivery</span>
-          <span style="color:${o.paymentStatus === 'Paid' ? 'var(--success)' : 'var(--gold)'}">
-            Payment: ${o.paymentStatus}
+          <span>${pm.icon} ${pm.label}</span>
+          <span style="color:${ps.color}">
+            Payment: ${ps.label}
           </span>
         </div>
         <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
