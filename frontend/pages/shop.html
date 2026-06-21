@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="/css/global.css">
 <link rel="stylesheet" href="/css/nav.css">
 <link rel="stylesheet" href="/css/shop.css">
+<link rel="stylesheet" href="/css/feed.css">
 </head>
 <body>
 <nav id="main-nav"></nav>
@@ -119,9 +120,8 @@
           </div>
         </div>
       </div>
-      <div class="products-grid" id="products-grid">
-        <div class="spinner"></div>
-      </div>
+      <!-- Cards + skeletons are managed by ProductFeed (js/infiniteProducts.js) -->
+      <div class="products-grid" id="products-grid"></div>
     </main>
 
   </div>
@@ -136,8 +136,9 @@
 <script src="/js/api.js"></script>
 <script src="/js/utils.js"></script>
 <script src="/js/layout.js"></script>
+<script src="/js/infiniteProducts.js"></script>
 <script>
-let allProducts = [];
+let feed = null;          // ProductFeed instance (created on load)
 let currentView = 'grid';
 
 // ── Filter Drawer (mobile)
@@ -171,8 +172,97 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyCategorySeo(cat);
   }
 
-  await loadProducts();
+  // Reusable progressive loader: 12 per page, infinite scroll + Load More.
+  feed = new ProductFeed({
+    grid:        document.getElementById('products-grid'),
+    fetchPage:   (params, page, limit) => API.getProducts({ ...params, page, limit }),
+    getParams:   buildParams,
+    renderCard:  cardHTML,
+    afterRender: initReveal,
+    onTotal:     updateResultsCount,
+    pageSize:    12
+  });
+
+  // Restore the previous list + scroll when the user comes Back from a product.
+  if (!restoreFeedState()) await feed.reload();
+
+  // Persist list + filters + scroll on the way out (covers non-bfcache back-nav).
+  window.addEventListener('pagehide', saveFeedState);
 });
+
+// ── Results count (driven by the feed's onTotal hook)
+function updateResultsCount(total) {
+  const el = document.getElementById('results-count');
+  if (!el) return;
+  if (total == null) { el.textContent = ''; return; }
+  el.textContent = `${total} product${total !== 1 ? 's' : ''} found`;
+}
+
+// ── Scroll / filter / state restoration ─────────────────────────────────────
+// Lightweight: we store the active filters, how many pages were loaded and the
+// scroll offset in sessionStorage, then re-fetch those pages in one request on
+// Back. No product payloads are stored, and it only fires on back/forward nav.
+const FEED_STATE_KEY = 'domdom:shop:feed';
+
+function currentLocation() { return location.pathname + location.search; }
+
+function snapshotFilters() {
+  return {
+    cat:    document.querySelector('input[name="cat"]:checked')?.value || 'all',
+    sort:   document.getElementById('sort-select').value,
+    minP:   document.getElementById('min-price').value,
+    maxP:   document.getElementById('max-price').value,
+    badges: [...document.querySelectorAll('.filter-option input[type=checkbox]:checked')].map(c => c.value),
+    view:   currentView
+  };
+}
+
+function applyFilterSnapshot(s) {
+  if (!s) return;
+  const radio = document.querySelector(`input[name="cat"][value="${s.cat}"]`);
+  if (radio) radio.checked = true;
+  document.getElementById('sort-select').value = s.sort || '';
+  document.getElementById('min-price').value   = s.minP || '';
+  document.getElementById('max-price').value   = s.maxP || '';
+  document.querySelectorAll('.filter-option input[type=checkbox]')
+    .forEach(c => { c.checked = (s.badges || []).includes(c.value); });
+  if (s.view) setView(s.view);
+  updateFilterIndicator();
+}
+
+function saveFeedState() {
+  if (!feed || feed.page < 1) return;
+  try {
+    sessionStorage.setItem(FEED_STATE_KEY, JSON.stringify({
+      path:    currentLocation(),
+      filters: snapshotFilters(),
+      pages:   feed.page,
+      scrollY: window.scrollY
+    }));
+  } catch {}
+}
+
+function wasBackForward() {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0];
+    return !!nav && nav.type === 'back_forward';
+  } catch { return false; }
+}
+
+// Returns true when it took over the initial load (so the caller skips it).
+function restoreFeedState() {
+  if (!wasBackForward()) return false;
+  let saved;
+  try { saved = JSON.parse(sessionStorage.getItem(FEED_STATE_KEY) || 'null'); } catch { return false; }
+  if (!saved || saved.path !== currentLocation()) return false;
+
+  applyFilterSnapshot(saved.filters);
+  const pages = Math.min(Math.max(saved.pages || 1, 1), 16);   // cap: backend limit is 200
+  feed.reload(pages).then(() => {
+    requestAnimationFrame(() => window.scrollTo(0, saved.scrollY || 0));
+  });
+  return true;
+}
 
 // Reflect the active category in the title, H1 and canonical (SEO).
 function applyCategorySeo(slug) {
@@ -207,22 +297,6 @@ async function loadCategories() {
   }
 }
 
-async function loadProducts() {
-  const grid = document.getElementById('products-grid');
-  grid.innerHTML = '<div class="spinner"></div>';
-  try {
-    const d = await API.getProducts(buildParams());
-    allProducts = d.products;
-    renderProducts(d.products);
-  } catch (e) {
-    grid.innerHTML = `
-      <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">
-        Could not load products.<br>Make sure the server is running.
-      </p>`;
-    document.getElementById('results-count').textContent = '';
-  }
-}
-
 function buildParams() {
   const cat    = document.querySelector('input[name="cat"]:checked')?.value;
   const sort   = document.getElementById('sort-select').value;
@@ -241,7 +315,7 @@ function buildParams() {
 
 function applyFilters() {
   updateFilterIndicator();
-  loadProducts();
+  feed?.reload();          // fresh page-1 load with the new filters/sort
 }
 
 function clearFilters() {
@@ -252,7 +326,7 @@ function clearFilters() {
   document.querySelectorAll('.filter-option input[type=checkbox]')
     .forEach(c => c.checked = false);
   updateFilterIndicator();
-  loadProducts();
+  feed?.reload();
   closeFilterDrawer();
 }
 
@@ -272,24 +346,6 @@ function setView(v) {
   document.getElementById('grid-btn').classList.toggle('active', v === 'grid');
   document.getElementById('list-btn').classList.toggle('active', v === 'list');
   document.getElementById('products-grid').classList.toggle('list-view', v === 'list');
-}
-
-function renderProducts(products) {
-  const grid = document.getElementById('products-grid');
-  document.getElementById('results-count').textContent =
-    `${products.length} product${products.length !== 1 ? 's' : ''} found`;
-
-  if (currentView === 'list') grid.classList.add('list-view');
-
-  if (!products.length) {
-    grid.innerHTML = `
-      <p style="text-align:center;color:var(--muted);grid-column:1/-1;padding:3rem">
-        No products match your filters.
-      </p>`;
-    return;
-  }
-  grid.innerHTML = products.map(p => cardHTML(p)).join('');
-  initReveal();
 }
 
 function cardHTML(p) {
@@ -334,7 +390,7 @@ function cardHTML(p) {
 }
 
 async function addToCart(id, btn) {
-  let p = allProducts.find(x => String(x._id || x.id) === id);
+  let p = (feed?.products || []).find(x => String(x._id || x.id) === id);
   if (!p) {
     try { const d = await API.getProduct(id); p = d.product; } catch { return; }
   }

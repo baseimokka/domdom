@@ -96,9 +96,13 @@ async function generateSku(category) {
 }
 
 // GET /api/products  (public)
+// Pagination is OPT-IN: when `page` or `limit` is supplied the response is a
+// single page plus { total, page, limit, hasMore }. Without them the endpoint
+// behaves exactly as before (returns the full matching set) — so the search
+// overlay and every other existing caller stay unaffected.
 exports.getAll = async (req, res) => {
   try {
-    const { category, badge, search, sort, minPrice, maxPrice } = req.query;
+    const { category, badge, search, sort, minPrice, maxPrice, page, limit } = req.query;
     const where = { active: true };
 
     if (category && category !== 'all') where.category = category;
@@ -121,6 +125,27 @@ exports.getAll = async (req, res) => {
     else if (sort === 'price_desc') orderBy = { price: 'desc' };
     else if (sort === 'rating')     orderBy = { rating: 'desc' };
     else                            orderBy = { createdAt: 'desc' };
+
+    // Opt-in pagination — preserves the original un-paginated contract.
+    if (page !== undefined || limit !== undefined) {
+      const take = Math.min(Math.max(parseInt(limit, 10) || 12, 1), 200);
+      const pg   = Math.max(parseInt(page, 10) || 1, 1);
+      const skip = (pg - 1) * take;
+      const [rows, total] = await Promise.all([
+        prisma.product.findMany({ where, orderBy, include: { colors: true }, skip, take }),
+        prisma.product.count({ where })
+      ]);
+      const products = rows.map(mapProduct);
+      return res.json({
+        success: true,
+        count:   products.length,
+        total,
+        page:    pg,
+        limit:   take,
+        hasMore: skip + products.length < total,
+        products
+      });
+    }
 
     const rows = await prisma.product.findMany({ where, orderBy, include: { colors: true } });
     const products = rows.map(mapProduct);
