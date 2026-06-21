@@ -27,7 +27,8 @@
     pageSize:        12,
     skeletonCount:   12,     // skeletons on a fresh load (fills the grid)
     appendSkeletons: 4,      // skeletons while appending the next page
-    prefetchMargin:  '300px' // fetch this far before the sentinel is reached
+    infinite:        false,  // true = auto-load on scroll; false = Load More button only
+    prefetchMargin:  '300px' // (infinite only) fetch this far before the sentinel is reached
   };
 
   // A single skeleton card. Reuses `.product-card` so it inherits the exact grid
@@ -117,6 +118,8 @@
     }
 
     _initObserver() {
+      // Button-only mode (default): no observer, so nothing auto-loads on scroll.
+      if (!this.o.infinite) return;
       if (!('IntersectionObserver' in window)) return; // graceful: button still works
       this._io = new IntersectionObserver((entries) => {
         if (entries.some(e => e.isIntersecting)) this.loadMore();

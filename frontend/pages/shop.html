@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyCategorySeo(cat);
   }
 
-  // Reusable progressive loader: 12 per page, infinite scroll + Load More.
+  // Reusable progressive loader: 12 per page, loaded via the "Load More" button.
   feed = new ProductFeed({
     grid:        document.getElementById('products-grid'),
     fetchPage:   (params, page, limit) => API.getProducts({ ...params, page, limit }),
@@ -180,7 +180,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCard:  cardHTML,
     afterRender: initReveal,
     onTotal:     updateResultsCount,
-    pageSize:    12
+    pageSize:    12,
+    infinite:    false   // button-driven; set true to auto-load on scroll
   });
 
   // Restore the previous list + scroll when the user comes Back from a product.
