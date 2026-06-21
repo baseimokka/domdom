@@ -1673,7 +1673,7 @@ async function updateOrderStatus(orderId, orderStatus, paymentStatus) {
 
 // ── DELETE
 async function deleteOrder(id, orderNumber) {
-  if (!confirm(`Permanently delete order ${orderNumber}?\n\nThis removes the order and its payment proof for good and cannot be undone. (Product stock is NOT restored — Cancel the order first if you need inventory back.)`)) return;
+  if (!confirm(`Permanently delete order ${orderNumber}?\n\nThis removes the order and its payment proof for good and cannot be undone. Product stock for this order is returned to inventory (unless the order was already cancelled).`)) return;
   try {
     await API.deleteOrder(id);
     showToast(`Order ${orderNumber} deleted`, 'info');

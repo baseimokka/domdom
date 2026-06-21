@@ -338,15 +338,40 @@ exports.cancelOrder = async (req, res, next) => {
 
 // DELETE /api/orders/:id  (admin — permanent hard delete)
 // Removes the order record and its line items (OrderItem cascades via schema)
-// plus the payment-proof image from disk. Does NOT adjust product stock — to
-// return inventory, Cancel the order first (which restocks), then delete.
+// plus the payment-proof image from disk. Inventory committed to the order is
+// returned to stock (and coupon usage restored) — UNLESS the order was already
+// Cancelled, which already returned that stock when it was cancelled (restocking
+// again here would double-count).
 exports.deleteOrder = async (req, res, next) => {
   try {
-    const order = await prisma.order.findUnique({ where: { id: req.params.id } });
+    const order = await prisma.order.findUnique({
+      where: { id: req.params.id }, include: { items: true }
+    });
     if (!order) return res.status(404).json({ error: 'Order not found' });
 
+    const shouldRestock = order.orderStatus !== 'Cancelled';
+
+    await prisma.$transaction(async tx => {
+      if (shouldRestock) {
+        for (const item of order.items) {
+          if (item.productId)
+            await tx.product.update({
+              where: { id: item.productId },
+              data:  { stock: { increment: item.quantity } }
+            }).catch(() => {});
+        }
+        if (order.discountCode) {
+          await tx.coupon.updateMany({
+            where: { code: order.discountCode, usedCount: { gt: 0 } },
+            data:  { usedCount: { decrement: 1 } }
+          });
+        }
+      }
+      await tx.order.delete({ where: { id: order.id } });
+    });
+
+    // Only remove the proof image once the DB delete has committed.
     if (order.paymentProof) deleteProofFile(order.paymentProof);
-    await prisma.order.delete({ where: { id: order.id } });
 
     return res.json({ success: true, message: 'Order deleted' });
   } catch (e) { next(e); }
