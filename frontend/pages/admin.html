@@ -1731,8 +1731,10 @@ function updatePricePreview() {
   if (!el) return;
   const base = parseFloat(document.getElementById('p-price').value);
   if (!isFinite(base) || base <= 0) { el.textContent = ''; return; }
-  const final = +(base * (1 + MARKUP_RATE)).toFixed(2);
-  el.textContent = `Customer pays ${final.toFixed(2)} EGP  (base price + ${(MARKUP_RATE * 100).toFixed(0)}%)`;
+  // mirror backend/config/pricing.js applyMarkup: base + markup, rounded UP
+  // to a whole EGP (toFixed(4) strips float noise before the ceil).
+  const final = Math.ceil(+(base * (1 + MARKUP_RATE)).toFixed(4));
+  el.textContent = `Customer pays ${final} EGP  (base price + ${(MARKUP_RATE * 100).toFixed(0)}%)`;
 }
 
 function openProductModal(product = null) {
