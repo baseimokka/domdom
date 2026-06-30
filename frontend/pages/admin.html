@@ -1732,7 +1732,7 @@ function updatePricePreview() {
   const base = parseFloat(document.getElementById('p-price').value);
   if (!isFinite(base) || base <= 0) { el.textContent = ''; return; }
   const final = +(base * (1 + MARKUP_RATE)).toFixed(2);
-  el.textContent = `Customer pays ${final.toFixed(2)} EGP  (base × ${(1 + MARKUP_RATE).toFixed(2)}, +${(MARKUP_RATE * 100).toFixed(0)}%)`;
+  el.textContent = `Customer pays ${final.toFixed(2)} EGP  (base price + ${(MARKUP_RATE * 100).toFixed(0)}%)`;
 }
 
 function openProductModal(product = null) {
