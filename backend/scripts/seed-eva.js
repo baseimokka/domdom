@@ -84,7 +84,7 @@ const templates = {
 // unique (and the name+brand duplicate check behaves correctly).
 const groups = [
   {
-    category: 'Body Splash',
+    category: 'body-splash',
     template: 'Body Splash',
     suffix: '',
     target: 188,
@@ -95,7 +95,7 @@ const groups = [
     ],
   },
   {
-    category: 'Body Care',
+    category: 'body-care',
     template: 'Body Serum',
     suffix: 'Body Serum',
     target: 145,
@@ -103,7 +103,7 @@ const groups = [
     items: ['Cozy Dream', 'Morning Blossom', 'Summer Twist', 'Spring Lilies', 'In The Clouds'],
   },
   {
-    category: 'Body Care',
+    category: 'body-care',
     template: 'Body Lotion',
     suffix: 'Body Lotion',
     target: 102,
@@ -111,7 +111,7 @@ const groups = [
     items: ['Summer Twist', 'Gold Spell', 'In The Clouds', 'Tropical'],
   },
   {
-    category: 'Body Care',
+    category: 'body-care',
     template: 'Shower Cream',
     suffix: 'Shower Cream',
     target: 85,

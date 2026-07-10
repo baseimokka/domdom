@@ -303,7 +303,7 @@ const products = [
   {
     name: "Skykur Gel 120 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Moisturizing Gel",
     price: 240,
     oldPrice: null,
@@ -311,7 +311,7 @@ const products = [
   {
     name: "Skykur Gel 60 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Moisturizing Gel",
     price: 150,
     oldPrice: null,
@@ -323,7 +323,7 @@ const products = [
   {
     name: "SkyKur Cream 120 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Moisturizing Cream",
     price: 225,
     oldPrice: null,
@@ -331,7 +331,7 @@ const products = [
   {
     name: "SkyKur Cream 240 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Moisturizing Cream",
     price: 270,
     oldPrice: 360,
@@ -339,7 +339,7 @@ const products = [
   {
     name: "Skykur Cream 60 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Moisturizing Cream",
     price: 140,
     oldPrice: null,
@@ -351,7 +351,7 @@ const products = [
   {
     name: "Ventamor Whitening Cream",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Whitening Cream",
     price: 230,
     oldPrice: null,
@@ -359,7 +359,7 @@ const products = [
   {
     name: "Ventamor Whitening Night Cream Gel",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Whitening Cream",
     price: 275,
     oldPrice: null,
@@ -367,7 +367,7 @@ const products = [
   {
     name: "Ventamor Whitening Cream for Sensitive Area 60 gm",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Whitening Cream",
     price: 275,
     oldPrice: null,
@@ -379,7 +379,7 @@ const products = [
   {
     name: "Ventamor Facial Wash",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Facial Cleanser",
     price: 220,
     oldPrice: null,
@@ -391,7 +391,7 @@ const products = [
   {
     name: "Ventamor Facial Double Cleanser 200 ml",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Double Cleanser",
     price: 270,
     oldPrice: null,
@@ -399,7 +399,7 @@ const products = [
   {
     name: "Ventamor Facial Double Cleanser 120 gm",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Double Cleanser",
     price: 180,
     oldPrice: null,
@@ -411,7 +411,7 @@ const products = [
   {
     name: "Ventamor Sunscreen Gel SPF50+ (75 gm)",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Sunscreen Gel",
     price: 395,
     oldPrice: null,
@@ -419,7 +419,7 @@ const products = [
   {
     name: "Ventamor Sunscreen Gel SPF50+ (50 gm)",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Sunscreen Gel",
     price: 290,
     oldPrice: null,
@@ -428,7 +428,7 @@ const products = [
   {
     name: "Ventamor Sunscreen Spray SPF50+",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Sunscreen Spray",
     price: 495,
     oldPrice: null,
@@ -441,7 +441,7 @@ const products = [
   {
     name: "Ventamor Eye Contour",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Eye Contour",
     price: 350,
     oldPrice: null,
@@ -453,7 +453,7 @@ const products = [
   {
     name: "Skykur Body Milk Original 200 ml",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Body Milk",
     price: 260,
     oldPrice: null,
@@ -461,7 +461,7 @@ const products = [
   {
     name: "Skykur Body Milk Fresh Jasmin",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Body Milk",
     price: 260,
     oldPrice: null,
@@ -469,7 +469,7 @@ const products = [
   {
     name: "Skykur Body Milk Strawberry",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Body Milk",
     price: 260,
     oldPrice: null,
@@ -477,7 +477,7 @@ const products = [
   {
     name: "Skykur Body Milk Creamy Peach",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Body Milk",
     price: 260,
     oldPrice: null,
@@ -489,7 +489,7 @@ const products = [
   {
     name: "Ventamor Antiaging Whitening Serum",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Anti-aging Serum",
     price: 425,
     oldPrice: null,
@@ -501,7 +501,7 @@ const products = [
   {
     name: "Skykur Niacinamide Serum",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Face Serum",
     price: 425,
     oldPrice: null,
@@ -509,7 +509,7 @@ const products = [
   {
     name: "Skykur Vitamin C Serum",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Face Serum",
     price: 425,
     oldPrice: null,
@@ -517,7 +517,7 @@ const products = [
   {
     name: "Skykur Retinol Intense Serum",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Face Serum",
     price: 425,
     oldPrice: null,
@@ -529,7 +529,7 @@ const products = [
   {
     name: "Skykur CICA Spray 200 ml",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "CICA Spray",
     price: 550,
     oldPrice: null,
@@ -537,7 +537,7 @@ const products = [
   {
     name: "Skykur CICA Facial Cleanser 200 ml",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "CICA Cleanser",
     price: 350,
     oldPrice: null,
@@ -545,7 +545,7 @@ const products = [
   {
     name: "Skykur CICA Cream Gel 60 gm",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "CICA Cream",
     price: 245,
     oldPrice: null,
@@ -553,7 +553,7 @@ const products = [
   {
     name: "Skykur CICA Creamy Lotion 120 ml",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "CICA Lotion",
     price: 445,
     oldPrice: null,
@@ -565,7 +565,7 @@ const products = [
   {
     name: "Ventamor Antiperspirant Whitening Roll-On Bubble Gum",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Roll-On Deodorant",
     price: 185,
     oldPrice: null,
@@ -573,7 +573,7 @@ const products = [
   {
     name: "Ventamor Antiperspirant Whitening Roll-On Fresh Lavender",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Roll-On Deodorant",
     price: 185,
     oldPrice: null,
@@ -581,7 +581,7 @@ const products = [
   {
     name: "Ventamor Antiperspirant Whitening Roll-On White Musk",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Roll-On Deodorant",
     price: 185,
     oldPrice: null,
@@ -590,7 +590,7 @@ const products = [
   {
     name: "Ventamor Antiperspirant Whitening Roll-On Neutral",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Roll-On Deodorant",
     price: 185,
     oldPrice: null,
@@ -602,7 +602,7 @@ const products = [
   {
     name: "Skykur Urea Cream 10% (200gm)",
     brand: "Skykur",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Urea Cream",
     price: 340,
     oldPrice: null,
@@ -614,7 +614,7 @@ const products = [
   {
     name: "Ventamor Acne Gel",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Acne Treatment",
     price: 210,
     oldPrice: null,
@@ -626,7 +626,7 @@ const products = [
   {
     name: "Ventamor Whitening Soap",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Whitening Soap",
     price: 80,
     oldPrice: null,
@@ -634,7 +634,7 @@ const products = [
   {
     name: "Ventamor Whitening Soap Black",
     brand: "Ventamor",
-    category: "Skin Care",
+    category: "skin-care",
     templateKey: "Whitening Soap",
     price: 85,
     oldPrice: null,
@@ -646,7 +646,7 @@ const products = [
   {
     name: "Relat Hair Serum 60ml",
     brand: "Relat",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Hair Serum",
     price: 275,
     oldPrice: null,
@@ -654,7 +654,7 @@ const products = [
   {
     name: "Relat Hair Cream 120 gm",
     brand: "Relat",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Hair Cream",
     price: 275,
     oldPrice: null,
@@ -662,7 +662,7 @@ const products = [
   {
     name: "Relat Hair Oil 120 ml",
     brand: "Relat",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Hair Oil",
     price: 240,
     oldPrice: null,
@@ -670,7 +670,7 @@ const products = [
   {
     name: "Relat Hair Tonic 120 ml",
     brand: "Relat",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Hair Tonic",
     price: 280,
     oldPrice: null,
@@ -678,7 +678,7 @@ const products = [
   {
     name: "Relat Eyebrow Serum",
     brand: "Relat",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Eyebrow Serum",
     price: 595,
     oldPrice: null,
@@ -690,7 +690,7 @@ const products = [
   {
     name: "Keranty Shampoo 200 ml",
     brand: "Keranty",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Shampoo",
     price: 240,
     oldPrice: null,
@@ -698,7 +698,7 @@ const products = [
   {
     name: "Keranty Conditioner 200 ml",
     brand: "Keranty",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Conditioner",
     price: 220,
     oldPrice: null,
@@ -710,7 +710,7 @@ const products = [
   {
     name: "Selenix Shampoo & Conditioner 150 ml",
     brand: "Selenix",
-    category: "Hair Care",
+    category: "hair-care",
     templateKey: "Shampoo & Conditioner",
     price: 190,
     oldPrice: null,
