@@ -24,6 +24,7 @@ const CATEGORIES = [
   { name: "Hair Care",   slug: "hair-care",   emoji: "💇", sortOrder: 2 },
   { name: "Body Splash", slug: "body-splash", emoji: "🌸", sortOrder: 3 },
   { name: "Body Care",   slug: "body-care",   emoji: "🧼", sortOrder: 4 },
+  { name: "Kids Care",   slug: "kids-care",   emoji: "🧸", sortOrder: 5 },
 ];
 
 // Legacy label -> slug remap for products seeded before this fix.
@@ -32,6 +33,7 @@ const REMAP = {
   "Hair Care": "hair-care",
   "Body Splash": "body-splash",
   "Body Care": "body-care",
+  "Kids Care": "kids-care",
 };
 
 async function main() {
