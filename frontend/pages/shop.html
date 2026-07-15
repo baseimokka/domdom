@@ -100,6 +100,18 @@
 
     <!-- MAIN CONTENT -->
     <main class="shop-main">
+      <!-- Search bar: submits on Enter, the 🔍 button, or the mobile keyboard's
+           Search key. Feeds the `search` param into the same ProductFeed path as
+           the filters/sort below, so it composes with all of them. -->
+      <form class="shop-search" id="shop-search-form" role="search">
+        <button type="submit" class="shop-search-btn" aria-label="Search" title="Search">🔍</button>
+        <input type="search" class="shop-search-input" id="shop-search-input"
+          placeholder="Search products, brands, categories…"
+          autocomplete="off" enterkeyhint="search" aria-label="Search products">
+        <button type="button" class="shop-search-clear" id="shop-search-clear"
+          aria-label="Clear search" title="Clear" hidden>✕</button>
+      </form>
+
       <div class="shop-toolbar">
         <span class="results-count" id="results-count">Loading…</span>
         <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
@@ -172,6 +184,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyCategorySeo(cat);
   }
 
+  // Search from ?search= — prefill the input so the value persists across
+  // refreshes/shared links; buildParams() then includes it in every request.
+  const q = new URLSearchParams(window.location.search).get('search');
+  if (q) document.getElementById('shop-search-input').value = q;
+  updateSearchClearBtn();
+  bindShopSearch();
+
   // Reusable progressive loader: 12 per page, loaded via the "Load More" button.
   feed = new ProductFeed({
     grid:        document.getElementById('products-grid'),
@@ -213,6 +232,7 @@ function snapshotFilters() {
     sort:   document.getElementById('sort-select').value,
     minP:   document.getElementById('min-price').value,
     maxP:   document.getElementById('max-price').value,
+    search: document.getElementById('shop-search-input')?.value || '',
     badges: [...document.querySelectorAll('.filter-option input[type=checkbox]:checked')].map(c => c.value),
     view:   currentView
   };
@@ -225,9 +245,11 @@ function applyFilterSnapshot(s) {
   document.getElementById('sort-select').value = s.sort || '';
   document.getElementById('min-price').value   = s.minP || '';
   document.getElementById('max-price').value   = s.maxP || '';
+  document.getElementById('shop-search-input').value = s.search || '';
   document.querySelectorAll('.filter-option input[type=checkbox]')
     .forEach(c => { c.checked = (s.badges || []).includes(c.value); });
   if (s.view) setView(s.view);
+  updateSearchClearBtn();
   updateFilterIndicator();
 }
 
@@ -303,15 +325,59 @@ function buildParams() {
   const sort   = document.getElementById('sort-select').value;
   const minP   = document.getElementById('min-price').value;
   const maxP   = document.getElementById('max-price').value;
+  const search = document.getElementById('shop-search-input')?.value.trim();
   const badges = [...document.querySelectorAll('.filter-option input[type=checkbox]:checked')]
     .map(c => c.value);
   const params = {};
   if (cat && cat !== 'all') params.category = cat;
-  if (sort)  params.sort     = sort;
-  if (minP)  params.minPrice = minP;
-  if (maxP)  params.maxPrice = maxP;
+  if (sort)   params.sort     = sort;
+  if (minP)   params.minPrice = minP;
+  if (maxP)   params.maxPrice = maxP;
+  if (search) params.search   = search;   // combines with category/price/badge (AND)
   if (badges.length === 1) params.badge = badges[0];
   return params;
+}
+
+// ── Search bar ──────────────────────────────────────────────────────────────
+// Search is trigger-based (Enter, the 🔍 button, or the mobile Search key) — it
+// never fetches on keystroke. Every trigger runs through the same feed.reload()
+// as the filters, so search composes with category/price/badge/sort and always
+// restarts at page 1.
+function bindShopSearch() {
+  const form  = document.getElementById('shop-search-form');
+  const input = document.getElementById('shop-search-input');
+  const clear = document.getElementById('shop-search-clear');
+  if (!form) return;
+  form.addEventListener('submit', e => { e.preventDefault(); doSearch(); });
+  input.addEventListener('input', updateSearchClearBtn);
+  clear.addEventListener('click', () => {
+    input.value = '';
+    updateSearchClearBtn();
+    doSearch();               // empty search → filter removed, all products shown
+    input.focus();
+  });
+}
+
+function doSearch() {
+  syncSearchUrl();
+  feed?.reload();             // reload() always starts at page 1
+}
+
+// Show the ✕ only when there is text to clear.
+function updateSearchClearBtn() {
+  const input = document.getElementById('shop-search-input');
+  const clear = document.getElementById('shop-search-clear');
+  if (input && clear) clear.hidden = !input.value.trim();
+}
+
+// Keep ?search= in the URL in sync (preserving the path + other query params) so
+// a refresh or shared link reproduces the same results.
+function syncSearchUrl() {
+  const q   = document.getElementById('shop-search-input').value.trim();
+  const url = new URL(window.location.href);
+  if (q) url.searchParams.set('search', q);
+  else   url.searchParams.delete('search');
+  history.replaceState(null, '', url.pathname + url.search + url.hash);
 }
 
 function applyFilters() {
@@ -324,8 +390,11 @@ function clearFilters() {
   document.getElementById('sort-select').value = '';
   document.getElementById('min-price').value   = '';
   document.getElementById('max-price').value   = '';
+  document.getElementById('shop-search-input').value = '';
   document.querySelectorAll('.filter-option input[type=checkbox]')
     .forEach(c => c.checked = false);
+  updateSearchClearBtn();
+  syncSearchUrl();
   updateFilterIndicator();
   feed?.reload();
   closeFilterDrawer();

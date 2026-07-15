@@ -293,71 +293,51 @@ function renderAuthModal() {
     </div>`);
 }
 
+// Global search entry point. It doesn't fetch on its own — submitting (Enter or
+// the 🔍 button) redirects to the Shop page, which runs the actual search and
+// renders the full filtered results. This keeps a single search code path and
+// avoids per-keystroke requests.
 function renderSearchOverlay() {
   if (document.getElementById('search-overlay')) return;
   document.body.insertAdjacentHTML('beforeend', `
     <div class="search-overlay hidden" id="search-overlay">
       <div class="search-box">
-        <div class="search-input-row">
-          <input type="text" class="search-input" id="search-input"
-            placeholder="Search lipstick, serum, palette…">
-          <button class="btn btn-outline btn-sm" id="search-close-btn">✕</button>
-        </div>
-        <div class="search-results" id="search-results"></div>
+        <form class="search-input-row" id="nav-search-form" role="search">
+          <input type="search" class="search-input" id="search-input"
+            placeholder="Search products, brands, categories…"
+            autocomplete="off" enterkeyhint="search" aria-label="Search products">
+          <button type="submit" class="nav-icon-btn search-go-btn" aria-label="Search" title="Search">🔍</button>
+          <button type="button" class="btn btn-outline btn-sm" id="search-close-btn" aria-label="Close">✕</button>
+        </form>
+        <p class="search-hint">Press Enter to see all matching products in the shop.</p>
       </div>
     </div>`);
 
-  document.getElementById('search-btn')?.addEventListener('click', () => {
-    document.getElementById('search-overlay').classList.remove('hidden');
-    document.getElementById('search-input').focus();
-  });
-  document.getElementById('search-close-btn')?.addEventListener('click', () =>
-    document.getElementById('search-overlay').classList.add('hidden'));
-  document.getElementById('search-overlay')?.addEventListener('click', e => {
-    if (e.target.id === 'search-overlay')
-      document.getElementById('search-overlay').classList.add('hidden');
-  });
+  const overlay = document.getElementById('search-overlay');
+  const input   = document.getElementById('search-input');
+  const form    = document.getElementById('nav-search-form');
+
+  const open = () => {
+    // Prefill with the active shop query so the user can refine it.
+    input.value = new URLSearchParams(location.search).get('search') || '';
+    overlay.classList.remove('hidden');
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+  };
+  const close = () => overlay.classList.add('hidden');
+
+  document.getElementById('search-btn')?.addEventListener('click', open);
+  document.getElementById('search-close-btn')?.addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape')
-      document.getElementById('search-overlay')?.classList.add('hidden');
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) close();
   });
 
-  let debounce;
-  document.getElementById('search-input')?.addEventListener('input', e => {
-    clearTimeout(debounce);
-    debounce = setTimeout(async () => {
-      const q  = e.target.value.trim();
-      const el = document.getElementById('search-results');
-      if (!q) { el.innerHTML = ''; return; }
-      el.innerHTML = '<div class="spinner spinner-sm" style="margin:.5rem auto"></div>';
-      try {
-        const d = await API.getProducts({ search: q });
-        if (!d.products.length) {
-          el.innerHTML = '<p style="text-align:center;color:var(--muted);padding:.5rem">No results</p>';
-          return;
-        }
-        el.innerHTML = d.products.slice(0, 6).map(p => {
-          const id    = p._id || p.id;
-          const img   = getProductImage(p);
-          const thumb = img
-            ? `<img src="${img}" alt="${p.name}"
-                style="width:100%;height:100%;object-fit:cover">`
-            : `<span>${p.emoji}</span>`;
-          return `<div class="search-result-item" onclick="
-              window.location='${productUrl(p)}';
-              document.getElementById('search-overlay').classList.add('hidden')">
-            <div class="search-result-thumb">${thumb}</div>
-            <div>
-              <div class="search-result-name">${p.name}</div>
-              <div class="search-result-cat">${p.category}</div>
-            </div>
-            <span class="search-result-price">${p.finalPrice.toFixed(2)} EGP</span>
-          </div>`;
-        }).join('');
-      } catch {
-        el.innerHTML = '<p style="color:var(--muted);text-align:center">Search error</p>';
-      }
-    }, 320);
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const q = input.value.trim();
+    close();
+    // Empty query clears the search; otherwise land on the filtered shop.
+    window.location.href = q ? `/shop?search=${encodeURIComponent(q)}` : '/shop';
   });
 }
 

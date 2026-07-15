@@ -112,12 +112,46 @@ exports.getAll = async (req, res) => {
       if (minPrice) where.price.gte = parseFloat(minPrice);
       if (maxPrice) where.price.lte = parseFloat(maxPrice);
     }
-    if (search) {
-      where.OR = [
-        { name:        { contains: search } },
-        { description: { contains: search } },
-        { sku:         { contains: search } }
+    // Search across the product's own fields + its category name.
+    // Case-insensitivity comes from MySQL's default *_ci collation — Prisma's
+    // `mode:'insensitive'` is unsupported on MySQL, so we deliberately omit it.
+    // Multi-word queries are tokenised: every word must match at least one field
+    // (AND of ORs), keeping results relevant instead of requiring the whole
+    // phrase to appear as a single substring.
+    if (search && String(search).trim()) {
+      const term   = String(search).trim();
+      const tokens = term.split(/\s+/).filter(Boolean).slice(0, 6);
+
+      // Products store `category` as a slug, so also match the human category
+      // *name*: resolve names containing the term → their slugs (e.g. "Kids
+      // Care" → "kids-care") and treat those as an alternative match.
+      let nameSlugs = [];
+      try {
+        const cats = await prisma.category.findMany({
+          where:  { name: { contains: term } },
+          select: { slug: true }
+        });
+        nameSlugs = cats.map(c => c.slug);
+      } catch { /* category lookup is best-effort; fall back to field search */ }
+
+      const fieldsFor = tok => [
+        { name:        { contains: tok } },
+        { brand:       { contains: tok } },
+        { category:    { contains: tok } },
+        { description: { contains: tok } },
+        { sku:         { contains: tok } }
       ];
+      const tokenClauses = tokens.map(tok => ({ OR: fieldsFor(tok) }));
+
+      if (nameSlugs.length) {
+        // Either every token matches a field, OR the term named a category.
+        where.OR = [
+          ...(tokenClauses.length ? [{ AND: tokenClauses }] : []),
+          { category: { in: nameSlugs } }
+        ];
+      } else if (tokenClauses.length) {
+        where.AND = tokenClauses;
+      }
     }
 
     let orderBy;

@@ -52,6 +52,20 @@
 .view-toggle-btn{width:34px;height:34px;border:1.5px solid var(--nude);border-radius:var(--r-sm);background:none;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s}
 .view-toggle-btn.active,.view-toggle-btn:hover{border-color:var(--rose);color:var(--rose)}
 
+/* ── SEARCH BAR */
+.shop-search{display:flex;align-items:center;gap:.4rem;background:#fff;border:1.5px solid var(--nude);border-radius:var(--r-full);padding:.3rem .6rem;margin-bottom:1.25rem;transition:border-color .2s,box-shadow .2s}
+.shop-search:focus-within{border-color:var(--rose);box-shadow:0 0 0 3px var(--rose-light)}
+.shop-search-input{flex:1;min-width:0;border:none;outline:none;background:none;font-family:'DM Sans',sans-serif;font-size:.95rem;color:var(--charcoal);padding:.4rem .1rem}
+.shop-search-input::placeholder{color:var(--muted)}
+/* Suppress the native clear button — we render our own ✕ for consistent styling */
+.shop-search-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.shop-search-btn{flex-shrink:0;width:34px;height:34px;border:none;background:none;font-size:1.05rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.shop-search-btn:hover{background:var(--rose-light)}
+.shop-search-clear{flex-shrink:0;width:26px;height:26px;border:none;background:var(--cream);color:var(--muted);font-size:.8rem;cursor:pointer;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+.shop-search-clear:hover{background:var(--nude);color:var(--charcoal)}
+/* The [hidden] attribute must beat the display:flex above, so re-assert it */
+.shop-search-clear[hidden]{display:none}
+
 /* ── PRODUCTS GRID */
 .products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
 .products-grid.list-view{grid-template-columns:1fr}
